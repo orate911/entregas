@@ -1,0 +1,12 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Logout{% endblock title %}
+
+{% block content %}
+	<header>Logout</header>
+	{% if flash['error'] %}
+		<p>{{ flash['error'][0] }}</p>
+	{% endif %}
+	
+	
+{% endblock content %}

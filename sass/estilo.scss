@@ -1,0 +1,52 @@
+@import "base";
+
+body {
+	background: #000;
+	color: #fff;
+	font-family: sans-serif;
+	font-weight: 100;
+}
+
+header {
+	margin: 20px 0 0 $margin;
+	h1{color: lightgray; @include adjust-font-size-to(32px);}
+	h2 {color: lightgreen; margin: 10px $margin + 5%; @include adjust-font-size-to(24px);}
+}
+
+nav{
+	padding: 1%;
+	ul { 
+		@include horizontal-list;
+		li {list-style: none;}
+		a {
+			@include unstyled-link();
+			@include transition-property(all);
+			@include transition-duration(.2s);
+			@include transition-timing-function(ease-in);
+			@include link-colors($blue + 100, $blue, green, $blue + 100, $blue);
+			&:hover {background: lightcyan;}
+		}
+	}
+}
+
+main {
+	background: #000;
+	@include background-grid($color: blue);
+
+	color: #fff;
+	//width: 960px;
+	margin: 0 auto;
+	font-family: sans-serif;
+	font-weight: 100;
+	@include border-radius(20px);
+	padding: 2%;
+	//@include background-image(linear-gradient($cream1, $cream2));
+}
+
+.articulo-cliente{@include rhythm-borders();}
+
+@include breakpoint(640px){
+	.login-form{
+		@include grid-span(1, 1);
+	}
+}

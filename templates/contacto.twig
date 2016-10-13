@@ -1,0 +1,16 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Contacto{% endblock title %}
+
+{% block content %}
+	<header>Contacto</header>
+	
+	<form action="" method="POST">
+		<fieldset>
+			<input type="text" name="nombre" placeholder="Nombre completo">
+			<input type="text" name="email" placeholder="Dirección de email">
+			<textarea name="mensaje" placeholder="Su mensaje"></textarea>
+		</fieldset>
+		<input type="submit" class="button">
+	</form>
+{% endblock content %}

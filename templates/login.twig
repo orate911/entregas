@@ -1,0 +1,29 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Login{% endblock title %}
+
+{% block page_title %}Login{% endblock page_title %}
+
+{% block content %}
+	{% if demo %}
+		<div class="demo">
+		{% for item in demo %}
+			<p>Nombre: {{ item['usuario'] }}<br/>
+			 Clave: {{ item['clave'] }}</p>
+		{% endfor %}
+		</div>
+	{% endif %}
+	
+	<div class="login-form">
+		<form action="" method="POST">
+			<fieldset>
+				<label for="usuario">Usuario: </label>
+				<input type="text" name="usuario">
+
+				<label for="clave">Clave: </label>
+				<input type="password" name="clave">
+			</fieldset>
+			<input type="submit" class="button">
+		</form>
+	</div>
+{% endblock content %}

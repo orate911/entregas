@@ -1,0 +1,24 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Contacto{% endblock title %}
+
+{% block content %}
+	<header>Logout</header>
+	
+	<form action="" method="POST">
+		<fieldset>
+			<label for="usuario">Usuario: </label>
+			<input type="text" name="usuario" value="{{ cliente['usuario'] }}">
+
+			<label for="clave">Clave: </label>
+			<input type="password" name="clave" value="{{ cliente['clave'] }}">
+			
+			<label for="email">Email: </label>
+			<input type="text" name="email" value="{{ cliente['email'] }}">
+			
+			<label for="nombre">Nombre: </label>
+			<input type="text" name="nombre" value="{{ cliente['nombre'] }}">
+		</fieldset>
+		<input type="submit" class="button">
+	</form>
+{% endblock content %}

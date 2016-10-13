@@ -1,0 +1,18 @@
+{% extends 'base.twig' %}
+
+{% block title %}Asteroide 2DI | {{ perfil.nombre }}{% endblock title %}
+
+{% block content %}
+	<header>Asteroide 2DI (Diseño y Desarrollo Interactivo)</header>
+	<h1>¡Hola!</h1>
+	<h3>Nos encontramos en construcción de algo que nos haga decir "bien, lo logramos"</h3>
+	<h5>Somos y no somos un asteroide más en el cosmos digital, nuestro asteroide es habitable y funcional.</h5>
+	<section>
+		<p>Somos un grupo de personas profesionales y calificadas para <em>desarrollar cualquier producto digital</em>, Sitios web, Multimedia Interactiva, Aplicaciones para móviles, Sistemas y cualquier necesidad que sea un reto para nosotros es siempre bienvenida.</p>
+		<p>Tenemos mas de <strong>10 años de experiencia</strong> desarrollando productos digitales que siempre han convencido y han sido funcionales para los usuarios</p>
+		<p>En cuanto podamos (ya que tenemos muchísimo trabajo) crearemos una forma de contacto para que puedan comunicarse con nosotros, ¡Gracias por su atención!</p>
+		<p id="texto"></p>
+	</section>
+	<p><a href="{{ path_for('contacto') }}">Contacto</a></p>
+	{{ router.pathFor('contacto') }}
+{% endblock content %}
