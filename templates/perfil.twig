@@ -1,6 +1,8 @@
 {% extends 'base.twig' %}
 
-{% block title %}Asteroide 2DI | {{ perfil.nombre }}{% endblock title %}
+{% block title %} | Asteroide 2di{% endblock title %}
+
+{% block page_title %}Asteroide 2di{% endblock page_title %}
 
 {% block content %}
 	<header>Asteroide 2DI (Diseño y Desarrollo Interactivo)</header>
@@ -14,5 +16,4 @@
 		<p id="texto"></p>
 	</section>
 	<p><a href="{{ path_for('contacto') }}">Contacto</a></p>
-	{{ router.pathFor('contacto') }}
 {% endblock content %}

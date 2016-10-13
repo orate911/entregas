@@ -2,11 +2,8 @@
 
 {% block title %} | Logout{% endblock title %}
 
-{% block content %}
-	<header>Logout</header>
-	{% if flash['error'] %}
-		<p>{{ flash['error'][0] }}</p>
-	{% endif %}
-	
+{% block page_title %}Logout{% endblock page_title %}
+
+{% block content %}	
 	
 {% endblock content %}

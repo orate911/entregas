@@ -8,9 +8,11 @@ body {
 }
 
 header {
-	margin: 20px 0 0 $margin;
-	h1{color: lightgray; @include adjust-font-size-to(32px);}
-	h2 {color: lightgreen; margin: 10px $margin + 5%; @include adjust-font-size-to(24px);}
+	margin: 20px 0 0 5%;
+	h1{
+		color: lightgray;
+		@include adjust-font-size-to(32px);
+	}
 }
 
 nav{
@@ -30,23 +32,32 @@ nav{
 }
 
 main {
-	background: #000;
-	@include background-grid($color: blue);
-
-	color: #fff;
-	//width: 960px;
-	margin: 0 auto;
+	text-align: center;
+	//@include background-grid($color: blue);
+	color: #000;
 	font-family: sans-serif;
 	font-weight: 100;
-	@include border-radius(20px);
-	padding: 2%;
-	//@include background-image(linear-gradient($cream1, $cream2));
+	.page-title {
+		color: green; margin: 10px 0px;
+		@include adjust-font-size-to(24px);
+	}
+	.main-cont{
+		text-align: left;
+		width: 90%;
+		@include inline-block();
+		@include border-radius(20px);
+		@include background-image(linear-gradient($cream1, $cream2));
+		padding: 2%;
+	}
 }
 
 .articulo-cliente{@include rhythm-borders();}
 
 @include breakpoint(640px){
-	.login-form{
+	.side-bar {
 		@include grid-span(1, 1);
+	}
+	.contenido {
+		@include grid-span(1, 2);
 	}
 }
