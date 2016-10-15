@@ -1,5 +1,14 @@
 /*************** main.js ***************/
 $(document).ready(function(){
+	// form-login
+	$input_usuario = $("input[name='usuario']");
+	$input_clave = $("input[name='clave']");
+	$('.accion-login-llenar').on('mousedown touchstart', function(event){
+		event.preventDefault();
+		$input_usuario.get(0).value = $(this).attr('data-usuario');
+		$input_clave.get(0).value = $(this).attr('data-clave');
+		return false;
+	});
 	// vars
 	var actividad = $('body');
 	var colores = {'normal': 'none', 'correcta': '#129af0', 'incorrecta': '#999999'};

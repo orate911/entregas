@@ -5,12 +5,36 @@
 {% block page_title %}Login{% endblock page_title %}
 
 {% block content %}
+{% set cont = 1 %}
+
 	{% if demo %}
 		<div class="demo">
+			<h1>Demo</h1>
+			<p>Las siguientes claves solo se proporcionan con fines demostrativos.</p>
+			<table cellspacing='0'>
+			    <thead>
+			      <tr class='odd'>
+			        <th>Función</th>
+			        <th>Nombre</th>
+			        <th>Clave</th>
+			        <th>Descripción</th>
+			        <th></th>
+			      </tr>
+			    </thead>
+			    <tbody>
 		{% for item in demo %}
-			<p>Nombre: {{ item['usuario'] }}<br/>
-			 Clave: {{ item['clave'] }}</p>
+				<tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
+			        <td>{{ item['funcion'] }}</td>
+			        <td>{{ item['usuario'] }}</td>
+			        <td>{{ item['clave'] }}</td>
+			        <td>{{ item['descripcion'] }}</td>
+					<td><a href="#" class="accion-login-llenar" data-usuario="{{ item['usuario'] }}"
+						data-clave="{{ item['clave'] }}">Llenar forma</a></td>
+				</tr>
+				{% set cont = cont + 1 %}
 		{% endfor %}
+			</tbody>
+		  </table>
 		</div>
 	{% endif %}
 	

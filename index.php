@@ -267,18 +267,40 @@ $app->run();
 
 /*================================================ DB Model ==================================================*/
 function demo_keys($c){
-    $demo = [];
     try{
         $results = $c['db']->query("
-            SELECT usuario, clave
-            FROM usuarios
-            WHERE funcion_id = 1
+            SELECT id, funcion, descripcion
+            FROM funciones
         ");
     }catch(Exception $e){
         echo ('No se pudo leer la informacion de la base de datos');
         exit();
     }
-    $demo['admin'] = $results->fetch();
+    $demo = $results->fetchAll();
+    
+    foreach($demo as &$func){
+       try{
+            $results = $c['db']->prepare("
+                SELECT usuario, clave
+                FROM usuarios
+                WHERE funcion_id = ?
+            ");
+            $results->bindParam(1, $func['id']);
+            $results->execute();
+        }catch(Exception $e){
+            echo ('No se pudo leer la informacion de la base de datos');
+            exit();
+        }
+        $usr = $results->fetch();
+        if(empty($usr)){
+            $func['usuario'] = 'no existe';
+            $func['clave'] = 'no existe';
+        }else{
+            $func['usuario'] = $usr['usuario'];
+            $func['clave'] = $usr['clave'];
+        }
+    }
+    unset($func);
     return $demo;
 }
 
