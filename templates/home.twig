@@ -5,6 +5,8 @@
 {% block page_title %}Home{% endblock page_title %}
 
 {% block content %}
-	<h1>¡Bienvenido!</h1>
-	<h3>Sitio en construcción.</h3>
+	{% if demo %}
+		{{ include('tabla-login.twig') }}
+	{% endif %}
+	<p>Sitio en construcción.</p>
 {% endblock content %}

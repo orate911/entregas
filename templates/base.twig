@@ -33,12 +33,6 @@
 		</ul>
 	</nav>
 
-	{% if flash %}
-		{% for key, menssajes in flash %}
-			<p>{{ menssajes[0] }}</p>
-		{% endfor %}
-	{% endif %}
-
 	<main>
 		<div class="main-cont">
 			<aside class="side-bar">
@@ -46,15 +40,18 @@
 				{% if usuario %}
 				<p>Conectado como {{ usuario.usuario }} con nivel {{ usuario.funcion }}.</p>
 				{% else %}
-				{{ include('form-login.twig') }}
+					{{ include('form-login.twig') }}
 				{% endif %}
 			{% endblock sidebar %}
 			</aside>
 
 			<div class="contenido">
-			<h2 class="page-title">{% block page_title %}Base{% endblock page_title %}</h2>
-			{% block content %}
-			{% endblock content %}
+				<h2 class="page-title">{% block page_title %}Base{% endblock page_title %}</h2>
+				{% if flash %}
+					{{ include('mensajes.twig') }}
+				{% endif %}
+				{% block content %}
+				{% endblock content %}
 			</div>
 		</div>
 	</main>

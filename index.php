@@ -61,7 +61,11 @@ $container['db'] = function ($container) {
 $app->get('/', function($request, $response){
     $usuario = checar_usuario($this);
     if(empty($usuario)){
-        return $response->withRedirect($this->router->pathFor('login'));
+        $demo = demo_keys($this);
+        return $this->view->render($response, 'home.twig', [
+            'flash' => $this->flash->getMessages(),
+            'demo' => $demo
+        ]);
     }
     return $this->view->render($response, 'home.twig', [
         'flash' => $this->flash->getMessages(),
@@ -72,7 +76,7 @@ $app->get('/', function($request, $response){
 $app->get('/clientes/[{id}]', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
-        return $response->withRedirect($this->router->pathFor('login'));
+        return $response->withRedirect($this->router->pathFor('home'));
     }
     if($usuario['funcion'] != 'admin'){
          $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
@@ -102,7 +106,7 @@ $app->get('/clientes/[{id}]', function ($request, $response, $args) {
 $app->get('/nuevo/[{tipo}]', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
-        return $response->withRedirect($this->router->pathFor('login'));
+        return $response->withRedirect($this->router->pathFor('home'));
     }
     if($usuario['funcion'] != 'admin'){
          $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
@@ -120,21 +124,12 @@ $app->get('/nuevo/[{tipo}]', function ($request, $response, $args) {
     return $response->withRedirect($this->router->pathFor('home'));
 })->setName('nuevo');
 
-$app->get('/login', function($request, $response){
-    $demo = demo_keys($this);
-    return $this->view->render($response, 'login.twig', [
-        'flash' => $this->flash->getMessages(),
-        'demo' => $demo
-    ]);
-})->setName('login');
-
 $app->get('/logout', function($request, $response){
     if(session_destroy()) {
         session_start();
     }
-    return $this->view->render($response, 'logout.twig', [
-        'flash' => $this->flash->getMessages()
-    ]);
+    $this->flash->addMessage('exito', '¡Hasta pronto!');
+    return $response->withRedirect($this->router->pathFor('home'));
 })->setName('logout');
 
 $app->get('/contacto', function($request, $response){
@@ -156,13 +151,14 @@ $app->post('/login', function($request, $response){
         $usuario = checar_clave($this, $login_data['usuario'], $login_data['clave']);
         if(empty($usuario)){
             $this->flash->addMessage('error', 'Nombre de usuario o clave incorrecta.');
-            return $response->withRedirect($this->router->pathFor('login'));
+            return $response->withRedirect($this->router->pathFor('home'));
         }
         $_SESSION['login_user'] = $usuario['usuario'];
+        $this->flash->addMessage('exito', '¡Bienvenido ' . $usuario['usuario'] . ' !');
         return $response->withRedirect($this->router->pathFor('home'));
     }else{
         $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
-        return $response->withRedirect($this->router->pathFor('login'));
+        return $response->withRedirect($this->router->pathFor('home'));
     }
 });
 
@@ -322,8 +318,8 @@ function checar_nuevo_usuario($c, $nombre){
 }
 
 function checar_usuario($c){
-    $usuario = $_SESSION['login_user'];
-    if(empty($usuario)) return false;
+    if(empty($_SESSION['login_user'])) return false;
+    $usuario = filter_var($_SESSION['login_user'], FILTER_SANITIZE_STRING);
     try{
         $results = $c['db']->prepare("
             SELECT usuarios.usuario, funciones.funcion

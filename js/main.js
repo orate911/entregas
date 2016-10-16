@@ -9,6 +9,15 @@ $(document).ready(function(){
 		$input_clave.get(0).value = $(this).attr('data-clave');
 		return false;
 	});
+	//mensajes
+	var mensajes = [];
+	$('.mensajes').children().each(function(index){
+		$(this).show(500);
+		// var mensaje = $(this).css({'opacity': '0'}).hide();
+		// mensaje.altura = mensaje.height();
+		// mensaje.height(1).hide();
+		// mensajes.push(mensaje);
+	});
 	// vars
 	var actividad = $('body');
 	var colores = {'normal': 'none', 'correcta': '#129af0', 'incorrecta': '#999999'};
@@ -146,9 +155,13 @@ $(document).ready(function(){
 	};
 	
 	function re_init(){	//Rutina principal, prepara los elementos y asigna los eventos de la actividad
+		
+	// $.each(mensajes, function(index){
+	// 	this.show()/*.velocity({'height': this.altura + 'px', 'opacity': 1}, 600)*/;
+	// });
 		actividad.correcta = false;
 		$.each(feeds, function(key){
-			this.css({'opacity': '0'}).hide();
+			this.css({'opacity': 0}).hide();
 			this.boton.css({'cursor': 'pointer'}).off('mousedown touchstart').on('mousedown touchstart', close_feed);
 		});
 		//

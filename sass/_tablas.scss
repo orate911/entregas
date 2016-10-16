@@ -1,0 +1,11 @@
+
+.demo {
+	table {
+		$table-color: lightcyan;
+		@include table-scaffolding;
+		@include inner-table-borders(1px, darken($table-color, 20%));
+		@include outer-table-borders(2px);
+		@include alternating-rows-and-columns($table-color, adjust-hue($table-color, -120deg), #222222);
+        th:first-child{border-right: none;}
+	}
+}

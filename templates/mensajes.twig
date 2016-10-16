@@ -1,0 +1,9 @@
+<div class="mensajes">
+{% for key, mensajes in flash %}
+    {% for mensaje in mensajes %}
+        <div class="{{ key }} mensaje">
+            <p>{{ mensaje }}</p>
+        </div>
+    {% endfor %}
+{% endfor %}
+</div>
