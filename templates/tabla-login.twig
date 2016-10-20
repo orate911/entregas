@@ -3,18 +3,18 @@
 <div class="demo">
 	<h1>Demo</h1>
 	<p>Las siguientes claves solo se proporcionan con fines demostrativos.</p>
-	<table cellspacing='0'>
+	<table class="demo-table" cellspacing='0'>
 		<thead>
 			<tr class='odd'>
 				<th>Función</th>
 				<th>Nombre</th>
 				<th>Clave</th>
 				<th>Descripción</th>
-				<th></th>
+				<th>Acciones</th>
 			</tr>
 		</thead>
 		<tbody>
-{% for item in demo %}
+			{% for item in demo %}
 			<tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
 				<td>{{ item['funcion'] }}</td>
 				<td>{{ item['usuario'] }}</td>
@@ -23,8 +23,8 @@
 				<td><a href="#" class="accion-login-llenar" data-usuario="{{ item['usuario'] }}"
 				data-clave="{{ item['clave'] }}">Llenar forma</a></td>
 			</tr>
-{% set cont = cont + 1 %}
-{% endfor %}
+			{% set cont = cont + 1 %}
+			{% endfor %}
 		</tbody>
 	</table>
 </div>

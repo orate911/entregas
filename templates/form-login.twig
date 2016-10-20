@@ -6,17 +6,20 @@
         
         <label>
             <span>Usuario: </span>
-            <input type="text" name="usuario">
+            <input type="text" name="usuario" placeholder="Nombre de usuario" required>
+            {% if flash['usuario'] %}
+                <div class="validation">{{ flash['usuario'][0] }}</div>
+            {% endif %}
         </label>
     
         <label>
             <span>Clave: </span>
-            <input type="password" name="clave">
+            <input type="password" name="clave" placeholder="Clave" required>
+            {% if flash['clave'] %}
+                <div class="validation">{{ flash['clave'][0] }}</div>
+            {% endif %}
         </label>
 
-        <label>
-            <span>&nbsp;</span>
-            <input type="submit" class="button">
-        </label>
+        <input type="submit" class="button">
     </form>
 </div>

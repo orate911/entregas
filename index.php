@@ -96,7 +96,7 @@ $app->get('/clientes/[{id}]', function ($request, $response, $args) {
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('clientes'));
     }
-    return $this->view->render($response, 'cliente.twig', [
+    return $this->view->render($response, 'cliente-detalle.twig', [
         'flash' => $this->flash->getMessages(),
         'cliente' => $cliente,
         'usuario' => $usuario
@@ -140,13 +140,21 @@ $app->get('/contacto', function($request, $response){
 
 /*================================================ Routing POST ===================================================*/
 $app->post('/login', function($request, $response){
+    $validation = true;
     $data = $request->getParsedBody();
 
-    if(!empty($data['usuario']) && !empty($data['clave'])){
+    if(empty($data['usuario'])){
+        $this->flash->addMessage('usuario', 'Escriba su nombre de usuario');
+        $validation = false;
+    }
+    if(empty($data['clave'])){
+        $this->flash->addMessage('clave', 'Escriba su clave de usuario');
+        $validation = false;
+    }
+    if($validation){
         $login_data = [];
         $login_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
         $login_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_STRING);
-        
         
         $usuario = checar_clave($this, $login_data['usuario'], $login_data['clave']);
         if(empty($usuario)){
@@ -213,7 +221,7 @@ $app->post('/nuevo/cliente', function($request, $response){
         $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
         $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
         
-        $usuario = nuevo_cliente($this, $nuevo_data);
+        $usuario = cliente_nuevo($this, $nuevo_data);
         if($usuario){
             $this->flash->addMessage('exito', 'El cliente ha sido creado.');
             return $response->withRedirect($this->router->pathFor('clientes'));
@@ -231,19 +239,24 @@ $app->post('/nuevo/cliente', function($request, $response){
 
 $app->post('/clientes/[{id}]', function ($request, $response, $args) {
     $data = $request->getParsedBody();
-
-    if(!empty($data['usuario']) && !empty($data['clave']) && !empty($data['email']) && !empty($data['nombre'])){
-        $nuevo_data = [];
-        $nuevo_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
-        if(checar_nuevo_usuario($this, $nuevo_data['usuario'])){
-            $this->flash->addMessage('error', 'El nombre de usuario ya esta registrado. Escriba uno diferente.');
-            return $response->withRedirect($this->router->pathFor('nuevo').'cliente');
+    $nuevo_data = [];
+    foreach($data as $key => $value){
+        switch($key){
+            case 'nombre':
+                if(!empty($value)) $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
+                break;
+            case 'clave':
+                if(!empty($value)) $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
+                break;
+            case 'email':
+                if(!empty($value)) $nuevo_data['email'] = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
+                break;
+            default:
         }
-        $nuevo_data['email'] = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-        $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
-        $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
-        
-        $usuario = nuevo_cliente($this, $nuevo_data);
+    }
+    echo var_dump($nuevo_data); exit();
+    if(!empty($nuevo_data)){        
+        $usuario = cliente_update($this, $nuevo_data);
         if($usuario){
             $this->flash->addMessage('exito', 'El cliente ha sido creado.');
             return $response->withRedirect($this->router->pathFor('clientes'));
@@ -393,7 +406,7 @@ function cliente_detalle($c, $id){
     return $cliente;
 }
 
-function nuevo_cliente($c, $data){
+function cliente_nuevo($c, $data){
     try{
         $results = $c['db']->prepare("
             INSERT INTO usuarios
@@ -425,4 +438,23 @@ function nuevo_cliente($c, $data){
         exit();
     }
     return true;
+}
+
+function cliente_update($c, $id){
+    try{
+        $results = $c['db']->prepare("
+            SELECT clientes.nombre, clientes.id, usuarios.usuario, usuarios.email
+            FROM clientes
+            LEFT OUTER JOIN usuarios
+            ON clientes.usuario_id = usuarios.id
+            WHERE clientes.id = ?
+        ");
+        $results->bindValue(1, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $cliente = $results->fetch();
+    return $cliente;
 }

@@ -9,6 +9,20 @@ $(document).ready(function(){
 		$input_clave.get(0).value = $(this).attr('data-clave');
 		return false;
 	});
+
+	// form-cliente
+	$('.accion-cliente-perfil').on('mousedown touchstart', function(event){
+		event.preventDefault();
+		$('.form-cliente').show(500);
+		return false;
+	});
+	
+	$('.accion-cliente-perfil').on('mousedown touchstart', function(event){
+		event.preventDefault();
+		$('.form-cliente').show(500);
+		return false;
+	});
+	
 	//mensajes
 	var mensajes = [];
 	$('.mensajes').children().each(function(index){
