@@ -23,7 +23,7 @@
             <p>{{ cliente['email'] }}</p>
         </label>
 
-        <a href="#" class="accion-cliente-perfil">Editar perfil</a>
+        <a href="{{ path_for('nuevo-direccion') }}" class="accion-cliente-direccion">Editar perfil</a>
     </div>
     
     {{ include('form-cliente.twig') }}

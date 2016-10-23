@@ -128,6 +128,17 @@ $app->get('/nuevo/cliente', function ($request, $response) {
     return $response->withRedirect($this->router->pathFor('home'));
 })->setName('nuevo-cliente');
 
+$app->get('/nuevo/direccion', function ($request, $response) {
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    return $this->view->render($response, 'form-direccion-nueva.twig', [
+        'flash' => $this->flash->getMessages(),
+        'usuario' => $usuario
+    ]);
+})->setName('nuevo-direccion');
+
 /*$app->get('/nuevo/{tipo}', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){

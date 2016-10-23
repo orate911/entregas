@@ -1,0 +1,58 @@
+<form action="" method="POST" class="form-direccion-nuevo">
+    <h1>Direccion nueva
+        <span>Ingrese los datos de la direccion y un nombre para identificarla.</span>
+    </h1>
+
+    <label>
+        <span>Alias: </span>
+        <input type="text" name="direccion" placeholder="Nombre descriptivo" required>
+        <div class="validation">{{ flash['direccion'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Calle: </span>
+        <input type="text" name="calle" placeholder="Calle y número">
+        <div class="validation">{{ flash['calle'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Entre: </span>
+        <input type="text" name="entre" placeholder="Referencia de otras calles">
+        <div class="validation">{{ flash['entre'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Colonia: </span>
+        <input type="text" name="colonia" placeholder="Colonia">
+        <div class="validation">{{ flash['colonia'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Estado: </span>
+        <input type="text" name="estado" placeholder="Estado">
+        <div class="validation">{{ flash['estado'][0] }}</div>
+    </label>
+
+    <label>
+        <span>País: </span>
+        <input type="text" name="pais" placeholder="País">
+        <div class="validation">{{ flash['pais'][0] }}</div>
+    </label>
+
+    <label>
+        <span>C.P.: </span>
+        <input type="text" name="cp" placeholder="Código Postal">
+        <div class="validation">{{ flash['cp'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Teléfono: </span>
+        <input type="text" name="telefono" placeholder="Teléfono">
+        <div class="validation">{{ flash['telefono'][0] }}</div>
+    </label>
+
+    <input type="hidden" name="id" value="{{ usuario.id }}">
+    <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
+
+    <input type="submit" class="button">
+</form>
