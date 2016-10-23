@@ -303,6 +303,9 @@ $app->post('/clientes/{id}', function ($request, $response, $args) {
             case 'nombre':
                 if(!empty($value)) $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
                 break;
+            case 'razon':
+                if(!empty($value)) $nuevo_data['razon'] = filter_var($data['razon'], FILTER_SANITIZE_STRING);
+                break;
             case 'clave':
                 if(!empty($value)) $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
                 break;
@@ -437,7 +440,7 @@ function clientes_lista($c){
     try{
         //echo var_dump($c); exit();
         $results = $c['db']->query("
-            SELECT clientes.nombre, usuarios.id, usuarios.usuario, usuarios.email
+            SELECT clientes.nombre, clientes.razon, usuarios.id, usuarios.usuario, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
@@ -453,7 +456,7 @@ function clientes_lista($c){
 function cliente_detalle($c, $id){
     try{
         $results = $c['db']->prepare("
-            SELECT clientes.nombre, usuarios.id, usuarios.usuario, usuarios.email
+            SELECT clientes.nombre, clientes.razon, usuarios.id, usuarios.usuario, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
@@ -489,12 +492,13 @@ function cliente_nuevo($c, $data){
     try{
         $results = $c['db']->prepare("
             INSERT INTO clientes
-            (nombre, usuario_id)
+            (nombre, razon, usuario_id)
             VALUES
-            (?, ?)
+            (?, ?, ?)
         ");
         $results->bindParam(1, $data['nombre']);
-        $results->bindValue(2, $id, PDO::PARAM_INT);
+        $results->bindParam(2, $data['razon']);
+        $results->bindValue(3, $id, PDO::PARAM_INT);
         $results->execute();
     }catch(Exception $e){
         echo ('No se pudo leer la informacion de la base de datos');
@@ -542,6 +546,21 @@ function cliente_update($c, $data, $id){
                 WHERE usuario_id = ?
             ");
             $results->bindParam(1, $data['nombre']);
+            $results->bindValue(2, $id, PDO::PARAM_INT);
+            $results->execute();
+        }catch(Exception $e){
+            echo ('No se pudo leer la informacion de la base de datos');
+            exit();
+        }
+    }
+    if(array_key_exists('razon', $data)){
+        try{
+            $results = $c['db']->prepare("
+                UPDATE clientes SET
+                razon = ?
+                WHERE usuario_id = ?
+            ");
+            $results->bindParam(1, $data['razon']);
             $results->bindValue(2, $id, PDO::PARAM_INT);
             $results->execute();
         }catch(Exception $e){

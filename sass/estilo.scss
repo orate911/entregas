@@ -52,7 +52,6 @@ main {
 }
 
 .mensajes {
-	//.mensaje {}
 	.exito {
 		display: none;
 		background: lightseagreen;
@@ -62,7 +61,29 @@ main {
 		background: lightsalmon;
 	}
 }
-.articulo-cliente{@include rhythm-borders();}
+
+.perfil {
+	max-width: 500px;
+	color: #666;
+	h1 {
+		@include adjust-font-size-to(24px);
+	}
+	label {
+		margin: 0px 0px 5px;
+		span {
+			color: #5E5E5E;
+			width: 25%;
+			white-space:nowrap;
+			padding-right: 2%;
+			font-weight: bold;
+		}
+	}
+	p {
+		margin-left: 22%;
+		color: #888;
+		width: 70%;
+	}
+}
 
 @include breakpoint(640px){
 	.side-bar {

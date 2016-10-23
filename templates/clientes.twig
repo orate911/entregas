@@ -13,6 +13,7 @@
 			<thead>
 				<tr class='odd'>
 					<th>Nombre</th>
+					<th>Razón Social</th>
 					<th>Email</th>
 					<th>Acciones</th>
 				</tr>
@@ -21,6 +22,7 @@
 				{% for index, cliente in clientes %}
 				<tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
 					<td>{{ cliente['nombre'] }}</td>
+					<td>{{ cliente['razon'] }}</td>
 					<td>{{ cliente['email'] }}</td>
 					<td><a href="{{ path_for('clientes', {id: cliente.id}) }}">Detalle</a></td>
 				</tr>

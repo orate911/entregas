@@ -21,6 +21,12 @@
         <div class="validation">{{ flash['nombre'][0] }}</div>
     </label>
 
+    <label>
+        <span>Razón Social: </span>
+        <input type="text" name="razon" placeholder="Razón Social">
+        <div class="validation">{{ flash['razon'][0] }}</div>
+    </label>
+
     <input type="hidden" name="id" value="{{ usuario.id }}">
     <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
 
