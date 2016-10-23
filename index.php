@@ -73,28 +73,37 @@ $app->get('/', function($request, $response){
     ]);
 })->setName('home');
 
-$app->get('/clientes/[{id}]', function ($request, $response, $args) {
+$app->get('/clientes', function ($request, $response) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
     if($usuario['funcion'] != 'admin'){
+        $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $clientes = clientes_lista($this);
+    return $this->view->render($response, 'clientes.twig', [
+        'flash' => $this->flash->getMessages(),
+        'clientes' => $clientes,
+        'usuario' => $usuario
+    ]);
+})->setName('clientes-lista');
+
+$app->get('/clientes/{id}', function ($request, $response, $args) {
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
          $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    if(empty($args['id'])){
-        $clientes = clientes_lista($this);
-        return $this->view->render($response, 'clientes.twig', [
-            'flash' => $this->flash->getMessages(),
-            'clientes' => $clientes,
-            'usuario' => $usuario
-        ]);
-    }
-    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
     $cliente = cliente_detalle($this, $id);
     if(empty($cliente)){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
-        return $response->withRedirect($this->router->pathFor('clientes'));
+        return $response->withRedirect($this->router->pathFor('home'));
     }
     return $this->view->render($response, 'cliente-detalle.twig', [
         'flash' => $this->flash->getMessages(),
@@ -103,7 +112,23 @@ $app->get('/clientes/[{id}]', function ($request, $response, $args) {
     ]);
 })->setName('clientes');
 
-$app->get('/nuevo/[{tipo}]', function ($request, $response, $args) {
+$app->get('/nuevo/cliente', function ($request, $response) {
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $this->view->render($response, 'cliente-nuevo.twig', [
+            'flash' => $this->flash->getMessages()
+        ]);
+    }
+    if($usuario['funcion'] == 'admin'){
+         return $this->view->render($response, 'cliente-nuevo.twig', [
+            'flash' => $this->flash->getMessages(),
+            'usuario' => $usuario
+        ]);
+    }
+    return $response->withRedirect($this->router->pathFor('home'));
+})->setName('nuevo-cliente');
+
+/*$app->get('/nuevo/{tipo}', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
@@ -122,7 +147,7 @@ $app->get('/nuevo/[{tipo}]', function ($request, $response, $args) {
     }
     // $this->flash->addMessage('error', 'No se especifico un tipo.');
     return $response->withRedirect($this->router->pathFor('home'));
-})->setName('nuevo');
+})->setName('nuevo');*/
 
 $app->get('/logout', function($request, $response){
     if(session_destroy()) {
@@ -140,34 +165,36 @@ $app->get('/contacto', function($request, $response){
 
 /*================================================ Routing POST ===================================================*/
 $app->post('/login', function($request, $response){
-    $validation = true;
     $data = $request->getParsedBody();
-
+    // validacion
+    $errores = false;
     if(empty($data['usuario'])){
-        $this->flash->addMessage('usuario', 'Escriba su nombre de usuario');
-        $validation = false;
+        $this->flash->addMessage('usrName', 'Escriba su nombre de usuario');
+        $errores = true;
     }
     if(empty($data['clave'])){
         $this->flash->addMessage('clave', 'Escriba su clave de usuario');
-        $validation = false;
+        $errores = true;
     }
-    if($validation){
-        $login_data = [];
-        $login_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
-        $login_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_STRING);
-        
-        $usuario = checar_clave($this, $login_data['usuario'], $login_data['clave']);
-        if(empty($usuario)){
-            $this->flash->addMessage('error', 'Nombre de usuario o clave incorrecta.');
-            return $response->withRedirect($this->router->pathFor('home'));
-        }
-        $_SESSION['login_user'] = $usuario['usuario'];
-        $this->flash->addMessage('exito', '¡Bienvenido ' . $usuario['usuario'] . ' !');
-        return $response->withRedirect($this->router->pathFor('home'));
-    }else{
+    if($errores){
         $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    // limpieza
+    $login_data = [];
+    $login_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
+    $login_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_STRING);
+    // checar_clave regresa el usuario si la clave es correcta
+    /*¡¡¡¡¡¡¡¡¡¡¡¡¡ Agregar encriptacion a la clave !!!!!!!!!!!!*/
+    $usuario = checar_clave($this, $login_data['usuario'], $login_data['clave']);
+    if(empty($usuario)){
+        $this->flash->addMessage('error', 'Nombre de usuario o clave incorrecta.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    // registrar seseion
+    $_SESSION['login_user'] = $usuario['usuario'];
+    $this->flash->addMessage('exito', '¡Bienvenido ' . $usuario['usuario'] . ' !');
+    return $response->withRedirect($this->router->pathFor('home'));
 });
 
 $app->post('/contacto', function($request, $response){
@@ -208,37 +235,68 @@ $app->post('/contacto', function($request, $response){
 });
 
 $app->post('/nuevo/cliente', function($request, $response){
+    $errores = false;
     $data = $request->getParsedBody();
-
-    if(!empty($data['usuario']) && !empty($data['clave']) && !empty($data['email']) && !empty($data['nombre'])){
-        $nuevo_data = [];
-        $nuevo_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
-        if(checar_nuevo_usuario($this, $nuevo_data['usuario'])){
-            $this->flash->addMessage('error', 'El nombre de usuario ya esta registrado. Escriba uno diferente.');
-            return $response->withRedirect($this->router->pathFor('nuevo').'cliente');
-        }
-        $nuevo_data['email'] = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-        $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
-        $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
-        
-        $usuario = cliente_nuevo($this, $nuevo_data);
-        if($usuario){
-            $this->flash->addMessage('exito', 'El cliente ha sido creado.');
-            return $response->withRedirect($this->router->pathFor('clientes'));
-        }else{
-            $this->logger->addInfo('Fallo creacion de nuevo cliente.');
-            $this->flash->addMessage('error', 'Hubo un problema al crear el cliente. Contacte con un administrador.');
-            return $response->withRedirect($this->router->pathFor('clientes'));
-        }
-        
-    }else{
-        $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
-        return $response->withRedirect($this->router->pathFor('nuevo').'cliente');
+    // validacion
+    if(empty($data['usuario'])){
+        $this->flash->addMessage('usrName', 'Escriba su nombre de usuario');
+        $errores = true;
     }
+    if(empty($data['clave'])){
+        $this->flash->addMessage('clave', 'Escriba su clave de usuario');
+        $errores = true;
+    }
+    if(empty($data['email'])){
+        $this->flash->addMessage('email', 'Escriba su email');
+        $errores = true;
+    }
+    if(empty($data['nombre'])){
+        $this->flash->addMessage('nombre', 'Escriba su nombre');
+        $errores = true;
+    }
+    if($errores){
+        $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
+        return $response->withRedirect($this->router->pathFor('nuevo-cliente'));
+    }
+    // checar_nuevo_usuario verifica si usuario es unico
+    $nuevo_data = [];
+    $nuevo_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
+    if(checar_nuevo_usuario($this, $nuevo_data['usuario'])){
+        $this->flash->addMessage('usrName', 'El nombre de usuario ya esta registrado. Escriba uno diferente.');
+        $errores = true;
+    }
+    // checar_email
+    $nuevo_data['email'] = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
+    if(!filter_var($nuevo_data['email'], FILTER_VALIDATE_EMAIL)){
+        $this->flash->addMessage('email', 'El email no tiene un formato válido.');
+        $errores = true;
+    }
+    if($errores){
+        return $response->withRedirect($this->router->pathFor('nuevo-cliente'));
+    }
+    $nuevo_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_SPECIAL_CHARS);
+    $nuevo_data['nombre'] = filter_var($data['nombre'], FILTER_SANITIZE_STRING);
+    // cliente_nuevo crea el cliente
+    $usuario = cliente_nuevo($this, $nuevo_data);
+    if(empty($usuario)){
+        $this->logger->addInfo('Fallo creacion de nuevo cliente.');
+        $this->flash->addMessage('error', 'Hubo un problema al crear el cliente.');
+        if(empty($data['id'])){
+            return $response->withRedirect($this->router->pathFor('home'));
+        }
+        return $response->withRedirect($this->router->pathFor('clientes-lista'));
+    }
+    $this->flash->addMessage('exito', 'El cliente ha sido creado.');
+    if($data['funcion'] != 'admin'){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    return $response->withRedirect($this->router->pathFor('clientes-lista'));
 });
 
-$app->post('/clientes/[{id}]', function ($request, $response, $args) {
+$app->post('/clientes/{id}', function ($request, $response, $args) {
     $data = $request->getParsedBody();
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    
     $nuevo_data = [];
     foreach($data as $key => $value){
         switch($key){
@@ -254,22 +312,19 @@ $app->post('/clientes/[{id}]', function ($request, $response, $args) {
             default:
         }
     }
-    echo var_dump($nuevo_data); exit();
-    if(!empty($nuevo_data)){        
-        $usuario = cliente_update($this, $nuevo_data);
-        if($usuario){
-            $this->flash->addMessage('exito', 'El cliente ha sido creado.');
-            return $response->withRedirect($this->router->pathFor('clientes'));
-        }else{
-            $this->logger->addInfo('Fallo creacion de nuevo cliente.');
-            $this->flash->addMessage('error', 'Hubo un problema al crear el cliente. Contacte con un administrador.');
-            return $response->withRedirect($this->router->pathFor('clientes'));
-        }
-        
-    }else{
-        $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
-        return $response->withRedirect($this->router->pathFor('nuevo').'cliente');
+    if(empty($nuevo_data)){
+        $this->flash->addMessage('error', 'La forma para actualizar esta vacia.');
+        return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
     }
+    // cliente_update 
+    $usuario = cliente_update($this, $nuevo_data, $id);
+    if(empty($usuario)){
+        $this->logger->addInfo('Fallo actualización de cliente.');
+        $this->flash->addMessage('error', 'Hubo un problema al actualizar el cliente.');
+        return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
+    }
+    $this->flash->addMessage('exito', 'El cliente ha sido actualizado.');
+    return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
 });
 
 $app->run();
@@ -335,7 +390,7 @@ function checar_usuario($c){
     $usuario = filter_var($_SESSION['login_user'], FILTER_SANITIZE_STRING);
     try{
         $results = $c['db']->prepare("
-            SELECT usuarios.usuario, funciones.funcion
+            SELECT usuarios.usuario, usuarios.id, funciones.funcion
             FROM usuarios
             JOIN funciones on usuarios.funcion_id = funciones.id
             WHERE usuarios.usuario = ?
@@ -370,11 +425,19 @@ function checar_clave($c, $usr, $clv){
     return $usuario;
 }
 
+function checar_email($c, $email){
+    if(preg_match("/^[-!#$%&'*+/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z{|}~])*
+        @[a-zA-Z](-?[a-zA-Z0-9])*(\.[a-zA-Z](-?[a-zA-Z0-9])*)+$/", $email)){
+            return true;
+        }
+    return false;
+}
+
 function clientes_lista($c){
     try{
-        //echo var_dump($c);
+        //echo var_dump($c); exit();
         $results = $c['db']->query("
-            SELECT clientes.nombre, clientes.id, usuarios.usuario, usuarios.email
+            SELECT clientes.nombre, usuarios.id, usuarios.usuario, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
@@ -390,11 +453,11 @@ function clientes_lista($c){
 function cliente_detalle($c, $id){
     try{
         $results = $c['db']->prepare("
-            SELECT clientes.nombre, clientes.id, usuarios.usuario, usuarios.email
+            SELECT clientes.nombre, usuarios.id, usuarios.usuario, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
-            WHERE clientes.id = ?
+            WHERE usuarios.id = ?
         ");
         $results->bindValue(1, $id, PDO::PARAM_INT);
         $results->execute();
@@ -440,21 +503,51 @@ function cliente_nuevo($c, $data){
     return true;
 }
 
-function cliente_update($c, $id){
-    try{
-        $results = $c['db']->prepare("
-            SELECT clientes.nombre, clientes.id, usuarios.usuario, usuarios.email
-            FROM clientes
-            LEFT OUTER JOIN usuarios
-            ON clientes.usuario_id = usuarios.id
-            WHERE clientes.id = ?
-        ");
-        $results->bindValue(1, $id, PDO::PARAM_INT);
-        $results->execute();
-    }catch(Exception $e){
-        echo ('No se pudo leer la informacion de la base de datos');
-        exit();
+function cliente_update($c, $data, $id){
+    if(array_key_exists('clave', $data)){
+        try{
+            $results = $c['db']->prepare("
+                UPDATE usuarios SET
+                clave = ?
+                WHERE id = ?
+            ");
+            $results->bindParam(1, $data['clave']);
+            $results->bindValue(2, $id, PDO::PARAM_INT);
+            $results->execute();
+        }catch(Exception $e){
+            echo ('No se pudo leer la informacion de la base de datos');
+            exit();
+        }
     }
-    $cliente = $results->fetch();
-    return $cliente;
+    if(array_key_exists('email', $data)){
+        try{
+            $results = $c['db']->prepare("
+                UPDATE usuarios SET
+                email = ?
+                WHERE id = ?
+            ");
+            $results->bindParam(1, $data['email']);
+            $results->bindValue(2, $id, PDO::PARAM_INT);
+            $results->execute();
+        }catch(Exception $e){
+            echo ('No se pudo leer la informacion de la base de datos');
+            exit();
+        }
+    }
+    if(array_key_exists('nombre', $data)){
+        try{
+            $results = $c['db']->prepare("
+                UPDATE clientes SET
+                nombre = ?
+                WHERE usuario_id = ?
+            ");
+            $results->bindParam(1, $data['nombre']);
+            $results->bindValue(2, $id, PDO::PARAM_INT);
+            $results->execute();
+        }catch(Exception $e){
+            echo ('No se pudo leer la informacion de la base de datos');
+            exit();
+        }
+    }
+    return true;
 }

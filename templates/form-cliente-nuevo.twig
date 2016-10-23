@@ -1,0 +1,34 @@
+<form action="" method="POST" class="form-cliente-nuevo">
+    <h1>Cliente nuevo
+        <span>Ingrese sus datos.</span>
+    </h1>
+
+    <label>
+        <span>Usuario: </span>
+        <input type="text" name="usuario" placeholder="Nombre de usuario" required>
+        <div class="validation">{{ flash['usrName'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Clave: </span>
+        <input type="password" name="clave" placeholder="Clave" required>
+        <div class="validation">{{ flash['clave'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Email: </span>
+        <input type="email" name="email" placeholder="Email (xxxx@xxxx.xxx)" required>
+        <div class="validation">{{ flash['email'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Nombre: </span>
+        <input type="text" name="nombre" placeholder="Nombre completo" required>
+        <div class="validation">{{ flash['nombre'][0] }}</div>
+    </label>
+
+    <input type="hidden" name="id" value="{{ usuario.id }}">
+    <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
+
+    <input type="submit" class="button">
+</form>

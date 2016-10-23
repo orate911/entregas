@@ -1,0 +1,41 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Cliente{% endblock title %}
+
+{% block page_title %}Cliente{% endblock page_title %}
+
+{% block content %}
+    <div class="perfil">
+        <h1>Perfil</h1>
+        <label>
+            <span>Nombre:</span>
+            <p>{{ cliente['nombre'] }}</p>
+        </label>
+
+        <label>
+            <span>Email:</span>
+            <p>{{ cliente['email'] }}</p>
+        </label>
+        <a href="#" class="accion-cliente-perfil">Editar perfil</a>
+        {{ include('form-cliente.twig') }}
+    </div>
+
+    <div class="direcciones">
+        <h1>Direcciones</h1>
+        {% if direcciones %}
+        {% set cont = 1 %}
+            <div class="direccion" class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
+            {% for index, direccion in direcciones %}
+                <label>
+                    <span>Calle:</span>
+                    <p>{{ direccion['calle'] }}</p>
+                </label>
+            {% set cont = cont + 1 %}
+            {% endfor %}
+            </div>
+		{% else %}
+			<p>No se han registrado direcciones para este cliente.</p>
+		{% endif %}
+        <a href="#" class="accion-cliente-direccion">Agregar dirección</a>
+    </div>
+{% endblock content %}

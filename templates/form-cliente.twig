@@ -1,0 +1,28 @@
+<form action="" method="POST" class="form-cliente">
+    <h1>Editar perfil
+        <span>Llene los campos que necesite editar.</span>
+    </h1>
+
+    <label>
+        <span>Clave: </span>
+        <input type="password" name="clave" placeholder="Clave">
+        <div class="validation">{{ flash['clave'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Email: </span>
+        <input type="email" name="email" placeholder="Email (xxxx@xxxx.xxx)">
+        <div class="validation">{{ flash['email'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Nombre: </span>
+        <input type="text" name="nombre" placeholder="Nombre completo">
+        <div class="validation">{{ flash['nombre'][0] }}</div>
+    </label>
+
+    <input type="hidden" name="id" value="{{ usuario.id }}">
+    <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
+
+    <input type="submit" class="button">
+</form>

@@ -26,7 +26,9 @@
 			<li><a href="{{ path_for('home') }}">Home</a></li>
 			{% if usuario %}
 				{% if usuario.funcion == 'admin' %}
-					<li><a href="{{ path_for('clientes') }}">Clientes</a></li>
+					<li><a href="{{ path_for('clientes-lista') }}">Clientes</a></li>
+				{% elseif usuario.funcion == 'cliente'%}
+					<li><a href="{{ path_for('clientes', {id: usuario.id}) }}">Perfil</a></li>
 				{% endif %}
 				<li><a href="{{ path_for('logout') }}">Logout</a></li>
 			{% endif %}
@@ -38,9 +40,12 @@
 			<aside class="side-bar">
 			{% block sidebar %}
 				{% if usuario %}
-				<p>Conectado como {{ usuario.usuario }} con nivel {{ usuario.funcion }}.</p>
+					<p>Conectado como {{ usuario.usuario }} con nivel {{ usuario.funcion }}.</p>
 				{% else %}
-					{{ include('form-login.twig') }}
+					<a href="{{ path_for('nuevo-cliente') }}">Registro</a>
+					<div class="side-cont">
+						{{ include('form-login.twig') }}
+					</div>
 				{% endif %}
 			{% endblock sidebar %}
 			</aside>

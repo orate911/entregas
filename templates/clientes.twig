@@ -4,19 +4,32 @@
 
 {% block page_title %}Clientes{% endblock page_title %}
 
+{% set cont = 1 %}
 {% block content %}
-	<a href="{{ path_for('nuevo') }}cliente">Crear nuevo cliente</a>
-	{% if clientes %}
-		{% for index, cliente in clientes %}
-			<div class="articulo-cliente">
-				Nombre: {{ cliente['nombre'] }}<br/>
-			 	Email: {{ cliente['email'] }}<br/>
-				<a href="{{ path_for('clientes') ~ cliente['id'] }}">Editar</a>
-			</div>
-		{% endfor %}
-	{% else %}
-		<p>No se han registrado clientes:</p>
-	{% endif %}
-	
-	
+	<a href="{{ path_for('nuevo-cliente') }}">Crear nuevo cliente</a>
+	<div class="clientes">
+		{% if clientes %}
+		<table class="clientes-table" cellspacing='0'>
+			<thead>
+				<tr class='odd'>
+					<th>Nombre</th>
+					<th>Email</th>
+					<th>Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for index, cliente in clientes %}
+				<tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
+					<td>{{ cliente['nombre'] }}</td>
+					<td>{{ cliente['email'] }}</td>
+					<td><a href="{{ path_for('clientes', {id: cliente.id}) }}">Detalle</a></td>
+				</tr>
+				{% set cont = cont + 1 %}
+				{% endfor %}
+			</tbody>
+		</table>
+		{% else %}
+			<p>No se han registrado clientes:</p>
+		{% endif %}
+	</div>
 {% endblock content %}
