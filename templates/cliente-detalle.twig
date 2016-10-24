@@ -23,27 +23,26 @@
             <p>{{ cliente['email'] }}</p>
         </label>
 
-        <a href="{{ path_for('nuevo-direccion') }}" class="accion-cliente-direccion">Editar perfil</a>
+        <a href="{{ path_for('update-cliente', {id: cliente.id}) }}" class="accion-cliente-perfil">Editar perfil</a>
     </div>
-    
-    {{ include('form-cliente.twig') }}
 
     <div class="direcciones">
         <h1>Direcciones</h1>
         {% if direcciones %}
-        {% set cont = 1 %}
-            <div class="direccion" class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
-            {% for index, direccion in direcciones %}
-                <label>
-                    <span>Calle:</span>
-                    <p>{{ direccion['calle'] }}</p>
-                </label>
-            {% set cont = cont + 1 %}
-            {% endfor %}
-            </div>
+            {{ include('tabla-direcciones.twig') }}
 		{% else %}
 			<p>No se han registrado direcciones para este cliente.</p>
 		{% endif %}
-        <a href="#" class="accion-cliente-direccion">Agregar dirección</a>
+        <a href="{{ path_for('nuevo-direccion', {id: cliente.id}) }}" class="accion-cliente-direccion">Agregar dirección</a>
+    </div>
+
+    <div class="entregas">
+        <h1>Entregas</h1>
+        {% if entregas %}
+            {{ include('tabla-entregas.twig') }}
+		{% else %}
+			<p>No se han registrado entregas para este cliente.</p>
+		{% endif %}
+        <a href="{{ path_for('nuevo-entrega', {id: cliente.id}) }}" class="accion-cliente-entrega">Agregar entrega</a>
     </div>
 {% endblock content %}

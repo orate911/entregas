@@ -90,7 +90,29 @@ $app->get('/clientes', function ($request, $response) {
     ]);
 })->setName('clientes-lista');
 
-$app->get('/clientes/{id}', function ($request, $response, $args) {
+$app->get('/detalle/cliente/{id}', function ($request, $response, $args) {
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $direcciones = direcciones_lista($this, $id);
+    $entregas = entregas_lista($this, $id);
+    return $this->view->render($response, 'cliente-detalle.twig', [
+        'flash' => $this->flash->getMessages(),
+        'cliente' => $cliente,
+        'usuario' => $usuario,
+        'direcciones' => $direcciones,
+        'entregas' => $entregas
+    ]);
+})->setName('detalle-cliente');
+
+$app->get('/update/cliente/{id}', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
@@ -105,12 +127,12 @@ $app->get('/clientes/{id}', function ($request, $response, $args) {
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    return $this->view->render($response, 'cliente-detalle.twig', [
+    return $this->view->render($response, 'cliente-update.twig', [
         'flash' => $this->flash->getMessages(),
         'cliente' => $cliente,
         'usuario' => $usuario
     ]);
-})->setName('clientes');
+})->setName('update-cliente');
 
 $app->get('/nuevo/cliente', function ($request, $response) {
     $usuario = checar_usuario($this);
@@ -128,37 +150,27 @@ $app->get('/nuevo/cliente', function ($request, $response) {
     return $response->withRedirect($this->router->pathFor('home'));
 })->setName('nuevo-cliente');
 
-$app->get('/nuevo/direccion', function ($request, $response) {
+$app->get('/nuevo/direccion/{id}', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    return $this->view->render($response, 'form-direccion-nueva.twig', [
+    return $this->view->render($response, 'direccion-nueva.twig', [
         'flash' => $this->flash->getMessages(),
         'usuario' => $usuario
     ]);
 })->setName('nuevo-direccion');
 
-/*$app->get('/nuevo/{tipo}', function ($request, $response, $args) {
+$app->get('/nuevo/entrega/{id}', function ($request, $response, $args) {
     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    if($usuario['funcion'] != 'admin'){
-         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
-        return $response->withRedirect($this->router->pathFor('home'));
-    }
-    $tipo = filter_var($args['tipo'], FILTER_SANITIZE_STRING);
-    switch($tipo){
-        case 'cliente':
-            return $this->view->render($response, 'cliente.twig', [
-                'flash' => $this->flash->getMessages(),
-                'usuario' => $usuario
-            ]);
-    }
-    // $this->flash->addMessage('error', 'No se especifico un tipo.');
-    return $response->withRedirect($this->router->pathFor('home'));
-})->setName('nuevo');*/
+    return $this->view->render($response, 'direccion-nueva.twig', [
+        'flash' => $this->flash->getMessages(),
+        'usuario' => $usuario
+    ]);
+})->setName('nuevo-entrega');
 
 $app->get('/logout', function($request, $response){
     if(session_destroy()) {
@@ -180,11 +192,11 @@ $app->post('/login', function($request, $response){
     // validacion
     $errores = false;
     if(empty($data['usuario'])){
-        $this->flash->addMessage('usrName', 'Escriba su nombre de usuario');
+        $this->flash->addMessage('usrName', 'El campo es requerido');
         $errores = true;
     }
     if(empty($data['clave'])){
-        $this->flash->addMessage('clave', 'Escriba su clave de usuario');
+        $this->flash->addMessage('clave', 'El campo es requerido');
         $errores = true;
     }
     if($errores){
@@ -304,7 +316,7 @@ $app->post('/nuevo/cliente', function($request, $response){
     return $response->withRedirect($this->router->pathFor('clientes-lista'));
 });
 
-$app->post('/clientes/{id}', function ($request, $response, $args) {
+$app->post('/update/cliente/{id}', function ($request, $response, $args) {
     $data = $request->getParsedBody();
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
     
@@ -328,17 +340,157 @@ $app->post('/clientes/{id}', function ($request, $response, $args) {
     }
     if(empty($nuevo_data)){
         $this->flash->addMessage('error', 'La forma para actualizar esta vacia.');
-        return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
+        return $response->withRedirect($this->router->pathFor('update-cliente', [id => $id]));
     }
     // cliente_update 
     $usuario = cliente_update($this, $nuevo_data, $id);
     if(empty($usuario)){
         $this->logger->addInfo('Fallo actualización de cliente.');
         $this->flash->addMessage('error', 'Hubo un problema al actualizar el cliente.');
-        return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
     }
     $this->flash->addMessage('exito', 'El cliente ha sido actualizado.');
-    return $response->withRedirect($this->router->pathFor('clientes', [id => $id]));
+    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+});
+
+$app->post('/nuevo/direccion/{id}', function($request, $response, $args){
+    $errores = false;
+    $data = $request->getParsedBody();
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    // validacion
+    if(empty($data['direccion'])){
+        $this->flash->addMessage('direccion', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['calle'])){
+        $this->flash->addMessage('calle', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['colonia'])){
+        $this->flash->addMessage('colonia', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['ciudad'])){
+        $this->flash->addMessage('ciudad', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['estado'])){
+        $this->flash->addMessage('estado', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['pais'])){
+        $this->flash->addMessage('pais', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['cp'])){
+        $this->flash->addMessage('cp', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['telefono'])){
+        $this->flash->addMessage('telefono', 'El campo es requerido');
+        $errores = true;
+    }
+    if($errores){
+        $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+    }
+    // checar_nuevo_usuario verifica si usuario es unico
+    $nuevo_data = [];
+    $nuevo_data['cp'] = filter_var($data['cp'], FILTER_SANITIZE_STRING);
+    if(!preg_match('/[0-9]{5}/i', $nuevo_data['cp'])){
+        $this->flash->addMessage('cp', 'El C.P. no tiene un formato válido.');
+        $errores = true;
+    }
+    if($errores){
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+    }
+    $nuevo_data['direccion'] = filter_var($data['direccion'], FILTER_SANITIZE_STRING);
+    $nuevo_data['calle'] = filter_var($data['calle'], FILTER_SANITIZE_STRING);
+    $nuevo_data['entre'] = filter_var($data['entre'], FILTER_SANITIZE_STRING);
+    $nuevo_data['colonia'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
+    $nuevo_data['ciudad'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
+    $nuevo_data['estado'] = filter_var($data['estado'], FILTER_SANITIZE_STRING);
+    $nuevo_data['pais'] = filter_var($data['pais'], FILTER_SANITIZE_STRING);
+    $nuevo_data['telefono'] = filter_var($data['telefono'], FILTER_SANITIZE_STRING);
+    // direccion_nueva crea la direccion
+    $direccion = direccion_nueva($this, $nuevo_data, $id);
+    if(empty($direccion)){
+        $this->logger->addInfo('Fallo creación de nueva dirección.');
+        $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    }
+    $this->flash->addMessage('exito', 'La dirección ha sido creada.');
+    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+});
+
+$app->post('/nuevo/entrega/{id}', function($request, $response, $args){
+    $errores = false;
+    $data = $request->getParsedBody();
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    // validacion
+    if(empty($data['direccion'])){
+        $this->flash->addMessage('direccion', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['calle'])){
+        $this->flash->addMessage('calle', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['colonia'])){
+        $this->flash->addMessage('colonia', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['ciudad'])){
+        $this->flash->addMessage('ciudad', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['estado'])){
+        $this->flash->addMessage('estado', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['pais'])){
+        $this->flash->addMessage('pais', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['cp'])){
+        $this->flash->addMessage('cp', 'El campo es requerido');
+        $errores = true;
+    }
+    if(empty($data['telefono'])){
+        $this->flash->addMessage('telefono', 'El campo es requerido');
+        $errores = true;
+    }
+    if($errores){
+        $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+    }
+    // checar_nuevo_usuario verifica si usuario es unico
+    $nuevo_data = [];
+    $nuevo_data['cp'] = filter_var($data['cp'], FILTER_SANITIZE_STRING);
+    if(!preg_match('/[0-9]{5}/i', $nuevo_data['cp'])){
+        $this->flash->addMessage('cp', 'El C.P. no tiene un formato válido.');
+        $errores = true;
+    }
+    if($errores){
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+    }
+    $nuevo_data['direccion'] = filter_var($data['direccion'], FILTER_SANITIZE_STRING);
+    $nuevo_data['calle'] = filter_var($data['calle'], FILTER_SANITIZE_STRING);
+    $nuevo_data['entre'] = filter_var($data['entre'], FILTER_SANITIZE_STRING);
+    $nuevo_data['colonia'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
+    $nuevo_data['ciudad'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
+    $nuevo_data['estado'] = filter_var($data['estado'], FILTER_SANITIZE_STRING);
+    $nuevo_data['pais'] = filter_var($data['pais'], FILTER_SANITIZE_STRING);
+    $nuevo_data['telefono'] = filter_var($data['telefono'], FILTER_SANITIZE_STRING);
+    // direccion_nueva crea la direccion
+    $direccion = direccion_nueva($this, $nuevo_data, $id);
+    if(empty($direccion)){
+        $this->logger->addInfo('Fallo creación de nueva dirección.');
+        $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    }
+    $this->flash->addMessage('exito', 'La dirección ha sido creada.');
+    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
 });
 
 $app->run();
@@ -580,4 +732,67 @@ function cliente_update($c, $data, $id){
         }
     }
     return true;
+}
+
+function direcciones_lista($c, $id){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->prepare("
+            SELECT *
+            FROM direcciones
+            WHERE usuario_id = ?
+        ");
+        $results->bindValue(1, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $direcciones = $results->fetchAll();
+    return $direcciones;
+}
+
+function direccion_nueva($c, $data, $id){
+    try{
+        $results = $c['db']->prepare("
+            INSERT INTO direcciones
+            (direccion, calle, entre, colonia, ciudad,    estado, pais, cp, telefono, usuario_id)
+            VALUES
+            (?, ?, ?, ?, ?,    ?, ?, ?, ?, ?)
+        ");
+        $results->bindParam(1, $data['direccion']);
+        $results->bindParam(2, $data['calle']);
+        $results->bindParam(3, $data['entre']);
+        $results->bindParam(4, $data['colonia']);
+        $results->bindParam(5, $data['ciudad']);
+
+        $results->bindParam(6, $data['estado']);
+        $results->bindParam(7, $data['pais']);
+        $results->bindParam(8, $data['cp']);
+        $results->bindParam(9, $data['telefono']);
+        $results->bindValue(10, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    return true;
+}
+
+function entregas_lista($c, $id){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->prepare("
+            SELECT *
+            FROM entregas
+            WHERE usuario_id = ?
+        ");
+        $results->bindValue(1, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $entregas = $results->fetchAll();
+    return $entregas;
 }

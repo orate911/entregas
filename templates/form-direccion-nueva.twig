@@ -1,4 +1,4 @@
-<form action="" method="POST" class="form-direccion-nuevo">
+<form action="" method="POST" class="form-direccion-nueva">
     <h1>Direccion nueva
         <span>Ingrese los datos de la direccion y un nombre para identificarla.</span>
     </h1>
@@ -11,7 +11,7 @@
 
     <label>
         <span>Calle: </span>
-        <input type="text" name="calle" placeholder="Calle y número">
+        <input type="text" name="calle" placeholder="Calle y número" required>
         <div class="validation">{{ flash['calle'][0] }}</div>
     </label>
 
@@ -23,31 +23,37 @@
 
     <label>
         <span>Colonia: </span>
-        <input type="text" name="colonia" placeholder="Colonia">
+        <input type="text" name="colonia" placeholder="Colonia" required>
         <div class="validation">{{ flash['colonia'][0] }}</div>
     </label>
 
     <label>
+        <span>Ciudad: </span>
+        <input type="text" name="ciudad" placeholder="Ciudad" required>
+        <div class="validation">{{ flash['ciudad'][0] }}</div>
+    </label>
+
+    <label>
         <span>Estado: </span>
-        <input type="text" name="estado" placeholder="Estado">
+        <input type="text" name="estado" placeholder="Estado" required>
         <div class="validation">{{ flash['estado'][0] }}</div>
     </label>
 
     <label>
         <span>País: </span>
-        <input type="text" name="pais" placeholder="País">
+        <input type="text" name="pais" placeholder="País" required>
         <div class="validation">{{ flash['pais'][0] }}</div>
     </label>
 
     <label>
         <span>C.P.: </span>
-        <input type="text" name="cp" placeholder="Código Postal">
+        <input type="text" name="cp" placeholder="Código Postal (00000)" pattern="[0-9]{5}" required>
         <div class="validation">{{ flash['cp'][0] }}</div>
     </label>
 
     <label>
         <span>Teléfono: </span>
-        <input type="text" name="telefono" placeholder="Teléfono">
+        <input type="text" name="telefono" placeholder="Teléfono" required>
         <div class="validation">{{ flash['telefono'][0] }}</div>
     </label>
 

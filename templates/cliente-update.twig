@@ -1,0 +1,28 @@
+{% extends 'base.twig' %}
+
+{% block title %} | Cliente Update{% endblock title %}
+
+{% block page_title %}Cliente Update{% endblock page_title %}
+
+{% block content %}
+    <div class="perfil">
+        <h1>Perfil</h1>
+
+        <label>
+            <span>Nombre:</span>
+            <p>{{ cliente['nombre'] }}</p>
+        </label>
+
+        <label>
+            <span>Razón Social:</span>
+            <p>{{ cliente['razon'] }}</p>
+        </label>
+
+        <label>
+            <span>Email:</span>
+            <p>{{ cliente['email'] }}</p>
+        </label>
+
+        {{ include('form-cliente-update.twig') }}
+    </div>
+{% endblock content %}

@@ -1,0 +1,26 @@
+<table class="direcciones-table" cellspacing='0'>
+    <thead>
+        <tr class='odd'>
+            <th>Alias</th>
+            <th>Calle</th>
+            <th>Colonia</th>
+            <th>C.P.</th>
+            <th>Teléfono</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for index, direccion in direcciones %}
+        <tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
+            <td>{{ direccion['direccion'] }}</td>
+            <td>{{ direccion['calle'] }}</td>
+            <td>{{ direccion['colonia'] }}</td>
+            <td>{{ direccion['cp'] }}</td>
+            <td>{{ direccion['telefono'] }}</td>
+            <td>&nbsp;</td>
+            {#<td><a href="{{ path_for('direcciones', {id: direccion.id}) }}">Detalle</a></td>#}
+        </tr>
+        {% set cont = cont + 1 %}
+        {% endfor %}
+    </tbody>
+</table>

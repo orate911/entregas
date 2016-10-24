@@ -9,27 +9,7 @@
 	<a href="{{ path_for('nuevo-cliente') }}">Crear nuevo cliente</a>
 	<div class="clientes">
 		{% if clientes %}
-		<table class="clientes-table" cellspacing='0'>
-			<thead>
-				<tr class='odd'>
-					<th>Nombre</th>
-					<th>Razón Social</th>
-					<th>Email</th>
-					<th>Acciones</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for index, cliente in clientes %}
-				<tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
-					<td>{{ cliente['nombre'] }}</td>
-					<td>{{ cliente['razon'] }}</td>
-					<td>{{ cliente['email'] }}</td>
-					<td><a href="{{ path_for('clientes', {id: cliente.id}) }}">Detalle</a></td>
-				</tr>
-				{% set cont = cont + 1 %}
-				{% endfor %}
-			</tbody>
-		</table>
+			{{ include('tabla-clientes.twig') }}
 		{% else %}
 			<p>No se han registrado clientes:</p>
 		{% endif %}
