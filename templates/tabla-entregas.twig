@@ -1,0 +1,28 @@
+<table class="entregas-table" cellspacing='0'>
+    <thead>
+        <tr class='odd'>
+            <th>Destinatario nombre</th>
+            <th>Destinatario razon social</th>
+            <th>Destinatario direccion</th>
+            <th>Remitente dirección</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for index, entrega in entregas %}
+        <tr class={{ (cont % 2) == 0 ? 'odd' : 'even' }}>
+            <td>{{ entrega['destinatario_nombre'] }}</td>
+            <td>{{ entrega['destinatario_razon'] }}</td>
+            <td>{{ entrega['direccion_dest'] }}</td>
+            <td>{{ entrega['direccion_remi'] }}</td>
+            <td>{{ entrega['estado'] }}</td>
+            <td>
+                <a href="{{ path_for('email-entrega', {id: entrega.usuario_id}) }}">Enviar email</a> |
+                <a href="{{ path_for('imprimir-entrega', {id: entrega.usuario_id}) }}">Imprimir</a>
+            </td>
+        </tr>
+        {% set cont = cont + 1 %}
+        {% endfor %}
+    </tbody>
+</table>

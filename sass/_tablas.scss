@@ -1,5 +1,5 @@
 
-.demo-table, .clientes-table, .direcciones-table {
+.demo-table, .clientes-table, .direcciones-table, .entregas-table {
     $table-color: lightcyan;
     @include table-scaffolding;
     @include inner-table-borders(1px, darken($table-color, 15%));

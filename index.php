@@ -102,7 +102,16 @@ $app->get('/detalle/cliente/{id}', function ($request, $response, $args) {
         return $response->withRedirect($this->router->pathFor('home'));
     }
     $direcciones = direcciones_lista($this, $id);
+    $dirs = array_column($direcciones, 'direccion', 'id');
+    $estados = estados_lista($this, $id);
+    $edos = array_column($estados, 'estado', 'id');
+    //var_dump($edos);
     $entregas = entregas_lista($this, $id);
+    foreach($entregas as $index => &$entrega){
+        $entrega['direccion_dest'] = $dirs[$entrega['destinatario_dir']];
+        $entrega['direccion_remi'] = $dirs[$entrega['remitente_dir']];
+        $entrega['estado'] = $edos[$entrega['estado_id']];
+    }
     return $this->view->render($response, 'cliente-detalle.twig', [
         'flash' => $this->flash->getMessages(),
         'cliente' => $cliente,
@@ -166,9 +175,20 @@ $app->get('/nuevo/entrega/{id}', function ($request, $response, $args) {
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    return $this->view->render($response, 'direccion-nueva.twig', [
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $direcciones = direcciones_lista($this, $id);
+    $tipos_entrega = tipos_entrega_lista($this, $id);
+    $coberturas = coberturas_lista($this, $id);
+    if(count($direcciones) < 2){
+        $this->flash->addMessage('error', 'Tiene que definir al menos dos direcciones para este cliente.');
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    }
+    return $this->view->render($response, 'entrega-nueva.twig', [
         'flash' => $this->flash->getMessages(),
-        'usuario' => $usuario
+        'usuario' => $usuario,
+        'direcciones' => $direcciones,
+        'tipos_entrega' => $tipos_entrega,
+        'coberturas' => $coberturas
     ]);
 })->setName('nuevo-entrega');
 
@@ -185,6 +205,18 @@ $app->get('/contacto', function($request, $response){
         'flash' => $this->flash->getMessages()
     ]);
 })->setName('contacto');
+
+$app->get('/email/entrega/{id}', function($request, $response, $args){
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $this->flash->addMessage('exito', 'El email ha sido enviado.');
+    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+})->setName('email-entrega');
+
+$app->get('/imprimir/entrega/{id}', function($request, $response, $args){
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $this->flash->addMessage('exito', 'La entrega se imprimio con exito.');
+    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+})->setName('imprimir-entrega');
 
 /*================================================ Routing POST ===================================================*/
 $app->post('/login', function($request, $response){
@@ -392,7 +424,7 @@ $app->post('/nuevo/direccion/{id}', function($request, $response, $args){
     }
     if($errores){
         $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
-        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion', [id => $id]));
     }
     // checar_nuevo_usuario verifica si usuario es unico
     $nuevo_data = [];
@@ -402,7 +434,7 @@ $app->post('/nuevo/direccion/{id}', function($request, $response, $args){
         $errores = true;
     }
     if($errores){
-        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+        return $response->withRedirect($this->router->pathFor('nuevo-direccion', [id => $id]));
     }
     $nuevo_data['direccion'] = filter_var($data['direccion'], FILTER_SANITIZE_STRING);
     $nuevo_data['calle'] = filter_var($data['calle'], FILTER_SANITIZE_STRING);
@@ -428,63 +460,41 @@ $app->post('/nuevo/entrega/{id}', function($request, $response, $args){
     $data = $request->getParsedBody();
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
     // validacion
-    if(empty($data['direccion'])){
-        $this->flash->addMessage('direccion', 'El campo es requerido');
+    if(empty($data['destinatario_nombre'])){
+        $this->flash->addMessage('destinatario_nombre', 'El campo es requerido');
         $errores = true;
     }
-    if(empty($data['calle'])){
-        $this->flash->addMessage('calle', 'El campo es requerido');
+    if(empty($data['destinatario_razon'])){
+        $this->flash->addMessage('destinatario_razon', 'El campo es requerido');
         $errores = true;
     }
-    if(empty($data['colonia'])){
-        $this->flash->addMessage('colonia', 'El campo es requerido');
+    if(empty($data['destinatario_dir'])){
+        $this->flash->addMessage('destinatario_dir', 'El campo es requerido');
         $errores = true;
     }
-    if(empty($data['ciudad'])){
-        $this->flash->addMessage('ciudad', 'El campo es requerido');
-        $errores = true;
-    }
-    if(empty($data['estado'])){
-        $this->flash->addMessage('estado', 'El campo es requerido');
-        $errores = true;
-    }
-    if(empty($data['pais'])){
-        $this->flash->addMessage('pais', 'El campo es requerido');
-        $errores = true;
-    }
-    if(empty($data['cp'])){
-        $this->flash->addMessage('cp', 'El campo es requerido');
-        $errores = true;
-    }
-    if(empty($data['telefono'])){
-        $this->flash->addMessage('telefono', 'El campo es requerido');
+    if(empty($data['remitente_dir'])){
+        $this->flash->addMessage('remitente_dir', 'El campo es requerido');
         $errores = true;
     }
     if($errores){
         $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
-        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
+        return $response->withRedirect($this->router->pathFor('nuevo-entrega', [id => $id]));
     }
     // checar_nuevo_usuario verifica si usuario es unico
     $nuevo_data = [];
-    $nuevo_data['cp'] = filter_var($data['cp'], FILTER_SANITIZE_STRING);
-    if(!preg_match('/[0-9]{5}/i', $nuevo_data['cp'])){
-        $this->flash->addMessage('cp', 'El C.P. no tiene un formato válido.');
-        $errores = true;
-    }
-    if($errores){
-        return $response->withRedirect($this->router->pathFor('nuevo-direccion'));
-    }
-    $nuevo_data['direccion'] = filter_var($data['direccion'], FILTER_SANITIZE_STRING);
-    $nuevo_data['calle'] = filter_var($data['calle'], FILTER_SANITIZE_STRING);
-    $nuevo_data['entre'] = filter_var($data['entre'], FILTER_SANITIZE_STRING);
-    $nuevo_data['colonia'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
-    $nuevo_data['ciudad'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
-    $nuevo_data['estado'] = filter_var($data['estado'], FILTER_SANITIZE_STRING);
-    $nuevo_data['pais'] = filter_var($data['pais'], FILTER_SANITIZE_STRING);
-    $nuevo_data['telefono'] = filter_var($data['telefono'], FILTER_SANITIZE_STRING);
-    // direccion_nueva crea la direccion
-    $direccion = direccion_nueva($this, $nuevo_data, $id);
-    if(empty($direccion)){
+    $nuevo_data['destinatario_nombre'] = filter_var($data['destinatario_nombre'], FILTER_SANITIZE_STRING);
+    $nuevo_data['destinatario_razon'] = filter_var($data['destinatario_razon'], FILTER_SANITIZE_STRING);
+    $nuevo_data['destinatario_dir'] = filter_var($data['destinatario_dir'], FILTER_SANITIZE_NUMBER_INT);
+    $nuevo_data['remitente_dir'] = filter_var($data['remitente_dir'], FILTER_SANITIZE_NUMBER_INT);
+    $nuevo_data['tipo_entrega_id'] = filter_var($data['tipo_entrega_id'], FILTER_SANITIZE_NUMBER_INT);
+    $nuevo_data['acuse'] = filter_var($data['acuse'], FILTER_VALIDATE_BOOLEAN);
+    $nuevo_data['cobertura_id'] = filter_var($data['cobertura_id'], FILTER_SANITIZE_NUMBER_INT);
+    $nuevo_data['cod'] = filter_var($data['cod'], FILTER_VALIDATE_BOOLEAN);
+    $nuevo_data['cantidad'] = filter_var($data['cantidad'], FILTER_SANITIZE_NUMBER_INT);
+    $nuevo_data['peso'] = filter_var($data['peso'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+    // entrega_nueva crea la entrega
+    $entrega = entrega_nueva($this, $nuevo_data, $id);
+    if(empty($entrega)){
         $this->logger->addInfo('Fallo creación de nueva dirección.');
         $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
         return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
@@ -734,6 +744,51 @@ function cliente_update($c, $data, $id){
     return true;
 }
 
+function tipos_entrega_lista($c){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->query("
+            SELECT *
+            FROM `tipos entrega`
+        ");
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $tipos_entrega = $results->fetchAll();
+    return $tipos_entrega;
+}
+
+function coberturas_lista($c){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->query("
+            SELECT *
+            FROM coberturas
+        ");
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $coberturas = $results->fetchAll();
+    return $coberturas;
+}
+
+function estados_lista($c){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->query("
+            SELECT *
+            FROM estados
+        ");
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $estados = $results->fetchAll();
+    return $estados;
+}
+
 function direcciones_lista($c, $id){
     try{
         //echo var_dump($id); exit();
@@ -795,4 +850,59 @@ function entregas_lista($c, $id){
     }
     $entregas = $results->fetchAll();
     return $entregas;
+}
+
+/*function entrega_nueva($c, $data, $id){
+    try{
+        $results = $c['db']->prepare("
+            INSERT INTO entregas
+            (destinatario_nombre, destinatario_razon, destinatario_dir, remitente_dir, estado_id,    usuario_id)
+            VALUES
+            (?, ?, ?, ?, ?,    ?)
+        ");
+        $results->bindParam(1, $data['destinatario_nombre']);
+        $results->bindParam(2, $data['destinatario_razon']);
+        $results->bindParam(3, $data['destinatario_dir']);
+        $results->bindParam(4, $data['remitente_dir']);
+        $results->bindValue(5, 0);
+
+        $results->bindValue(10, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    return true;
+}*/
+
+function entrega_nueva($c, $data, $id){
+    try{
+        //var_dump($data); exit();
+        $results = $c['db']->prepare("
+            INSERT INTO entregas
+            (destinatario_nombre, destinatario_razon, destinatario_dir, remitente_dir, tipo_entrega_id,
+            acuse, cobertura_id, cod, cantidad, peso,
+            estado_id, usuario_id)
+            VALUES
+            (?, ?, ?, ?, ?,    ?, ?, ?, ?, ?,   1,?)
+        ");
+        $results->bindParam(1, $data['destinatario_nombre']);
+        $results->bindParam(2, $data['destinatario_razon']);
+        $results->bindValue(3, $data['destinatario_dir'], PDO::PARAM_INT);
+        $results->bindValue(4, $data['remitente_dir'], PDO::PARAM_INT);
+        $results->bindValue(5, $data['tipo_entrega_id'], PDO::PARAM_INT);
+
+        $results->bindValue(6, $data['acuse'], PDO::PARAM_BOOL);
+        $results->bindValue(7, $data['cobertura_id'], PDO::PARAM_INT);
+        $results->bindValue(8, $data['cod'], PDO::PARAM_BOOL);
+        $results->bindValue(9, $data['cantidad'], PDO::PARAM_INT);
+        $results->bindValue(10, $data['peso']);
+
+        $results->bindValue(11, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    return true;
 }

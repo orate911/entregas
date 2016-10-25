@@ -1,0 +1,94 @@
+<form action="" method="POST" class="form-entrega-nueva">
+    <h1>Entrege nueva
+        <span>Ingrese los datos de la entrega.</span>
+    </h1>
+
+    <label>
+        <span>Destinatario nombre: </span>
+        <input type="text" name="destinatario_nombre" placeholder="Nombre del destinatario" required>
+        <div class="validation">{{ flash['destinatario_nombre'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Destinatario razon social: </span>
+        <input type="text" name="destinatario_razon" placeholder="Razon social del destinatario" required>
+        <div class="validation">{{ flash['destinatario_razon'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Dirección del destinatario: </span>
+        <select name="destinatario_dir" required>
+            <option value="">Seleccione una dirección</option>
+            {% for index, direccion in direcciones %}
+            <option value="{{ direccion.id }}">{{ direccion.direccion }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span>( {{ direccion.calle | slice(0,15) }}... )</span></option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['destinatario_dir'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Dirección del remitente: </span>
+        <select name="remitente_dir" required>
+            <option value="">Seleccione una dirección</option>
+            {% for index, direccion in direcciones %}
+            <option value="{{ direccion.id }}">{{ direccion.direccion }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span>( {{ direccion.calle | slice(0,15) }}... )</span></option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['remitente_dir'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Tipo de entrega: </span>
+        <select name="tipo_entrega_id">
+            <option value="">Seleccione un tipo de entrega</option>
+            {% for index, tipo_entrega in tipos_entrega %}
+            <option value="{{ tipo_entrega.id }}">{{ tipo_entrega['tipo entrega'] }}</option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['tipo'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Tipo de acuse/Documento: </span>
+        <input type="radio" name="acuse" value="0" checked>Sin acuse
+        <input type="radio" name="acuse" value="1">Con acuse
+        <div class="validation">{{ flash['acuse'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Tipo de cobertura: </span>
+        <select name="cobertura_id">
+            <option value="">Seleccione un tipo de cobertura</option>
+            {% for index, cobertura in coberturas %}
+            <option value="{{ cobertura.id }}">{{ cobertura.cobertura }}</option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['cobertura_id'][0] }}</div>
+    </label>
+
+    <label>
+        <span>C.O.D.: </span>
+        <input type="radio" name="cod" value="0" checked>No
+        <input type="radio" name="cod" value="1">Si
+        <div class="validation">{{ flash['cod'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Cantidad: </span>
+        <input type="text" name="cantidad" placeholder="Cantidad">
+        <div class="validation">{{ flash['cantidad'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Peso: </span>
+        <input type="text" name="peso" placeholder="Peso">
+        <div class="validation">{{ flash['peso'][0] }}</div>
+    </label>
+
+    <input type="hidden" name="id" value="{{ usuario.id }}">
+    <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
+
+    <input type="submit" class="button">
+</form>
