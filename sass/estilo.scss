@@ -17,18 +17,26 @@ header {
 	}
 }
 
-nav{
-	padding: 1%;
+nav {
+	//text-align: center;
+	margin: 10px 3%;
 	ul { 
 		@include horizontal-list;
-		li {list-style: none;}
-		a {
-			@include unstyled-link();
+		//@include inline-block();
+		background: $blue;
+		li {
+			text-align: center;
+			list-style: none;
+			width: 100px;
 			@include transition-property(all);
 			@include transition-duration(.2s);
 			@include transition-timing-function(ease-in);
 			@include link-colors($blue + 100, $blue, green, $blue + 100, $blue);
 			&:hover {background: lightcyan;}
+			a {
+				display: block;
+				@include unstyled-link();
+			}
 		}
 	}
 }
@@ -45,7 +53,7 @@ main {
 		text-align: left;
 		width: 90%;
 		@include inline-block();
-		@include border-radius(20px);
+		@include border-radius(5px);
 		@include background-image(linear-gradient($cream1, $cream2));
 		padding: 2%;
 	}

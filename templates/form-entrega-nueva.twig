@@ -44,7 +44,7 @@
         <select name="tipo_entrega_id">
             <option value="">Seleccione un tipo de entrega</option>
             {% for index, tipo_entrega in tipos_entrega %}
-            <option value="{{ tipo_entrega.id }}">{{ tipo_entrega['tipo entrega'] }}</option>
+            <option value="{{ tipo_entrega.id }}">{{ tipo_entrega['tipo_entrega'] }}</option>
             {% endfor %}
         </select>
         <div class="validation">{{ flash['tipo'][0] }}</div>

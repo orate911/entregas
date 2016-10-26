@@ -13,7 +13,7 @@
             <td>{{ cliente['nombre'] }}</td>
             <td>{{ cliente['razon'] }}</td>
             <td>{{ cliente['email'] }}</td>
-            <td><a href="{{ path_for('detalle-cliente', {id: cliente.id}) }}">Detalle</a></td>
+            <td><a href="{{ path_for('detalle-cliente', {id: cliente.usuario_id}) }}">Detalle</a></td>
         </tr>
         {% set cont = cont + 1 %}
         {% endfor %}

@@ -7,10 +7,10 @@ session_start();
 $config['displayErrorDetails'] = true;  //for dev
 $config['addContentLengthHeader'] = false;
 
-$config['db']['host']   = "localhost";
-$config['db']['user']   = "carssa_db_usr";
-$config['db']['pass']   = "SRERZYR37VTacmqv";
-$config['db']['dbname'] = "carssa";
+$config['db']['host']   = "entregas.asteroide2di.com";
+$config['db']['user']   = "astero5_entr_usr";
+$config['db']['pass']   = "ud;nGqZ@9euv";
+$config['db']['dbname'] = "astero5_entregas";
 
 $app = new \Slim\App(['settings' => $config]);
 $container = $app->getContainer();
@@ -28,6 +28,26 @@ $container['flash'] = function () {
     return new \Slim\Flash\Messages();
 };
 
+// Flash
+$container['pdf'] = function () {
+    class PDF extends FPDF {
+        function Header(){
+            //$this->Image('logo_pb.png',10,8,33);
+            $this->SetFont('Arial','B',15);
+            $this->Cell(80);
+            $this->Cell(30,10,'Title',1,0,'C');
+            $this->Ln(20);
+        }
+        function Footer(){
+            $this->SetY(-15);
+            $this->SetFont('Arial','I',8);
+            $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',0,0,'C');
+        }
+    }
+    $pdf = new \PDF();
+    return $pdf;
+};
+
 // Twig View helper
 $container['view'] = function ($container) {
     $view = new \Slim\Views\Twig('templates', [
@@ -37,7 +57,6 @@ $container['view'] = function ($container) {
         $container['router'],
         $container['request']->getUri()
     ));
-
     return $view;
 };
 
@@ -206,16 +225,100 @@ $app->get('/contacto', function($request, $response){
     ]);
 })->setName('contacto');
 
-$app->get('/email/entrega/{id}', function($request, $response, $args){
+$app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
-    $this->flash->addMessage('exito', 'El email ha sido enviado.');
-    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
+         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $eid = filter_var($args['eid'], FILTER_SANITIZE_NUMBER_INT);
+    $entrega = entrega_detalle($this, $eid);
+    if(empty($entrega)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    //
+    $transport = Swift_MailTransport::newInstance();
+    $mailer = Swift_Mailer::newInstance($transport);
+    $message = Swift_Message::newInstance();
+    $message->setSubject('Asteroide 2DI Entrega');
+    $message->setFrom(array(
+        $cliente['email'] => $cliente['nombre']
+    ));
+    $message->setTo(array(
+        'orate911@hotmail.com' => 'Yo'
+    ));
+    $message->setBody($entrega);
+    $result = rand(0,1);    //$mailer->send($message);  //rand(0,1);
+    
+    if($result > 0){
+        $this->flash->addMessage('exito', 'Su mensaje ha sido recibido. Muy pronto nos contactaremos con usted.');
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    }else{
+        $this->logger->addInfo('Fallo envio de email');
+        $this->flash->addMessage('error', 'Hubo un problema al enviar su email. Inténtelo de nuevo.');
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    }
 })->setName('email-entrega');
 
-$app->get('/imprimir/entrega/{id}', function($request, $response, $args){
+$app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $eid = filter_var($args['eid'], FILTER_SANITIZE_NUMBER_INT);
+    $usuario = checar_usuario($this);
+    if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $entrega = entrega_detalle($this, $eid);
+    if(empty($entrega)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
     $this->flash->addMessage('exito', 'La entrega se imprimio con exito.');
-    return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+    $response = $response->withHeader( 'Content-type', 'application/pdf');
+    $this->pdf->AliasNbPages();
+    $this->pdf->AddPage();
+    $this->pdf->SetFont('Arial','',12);
+    //$this->pdf->Cell(40,10,utf8_encode('¡Hola, Mundo!'));
+        $this->pdf->Cell(40,7,utf8_encode('Remitente'));
+        $this->pdf->Ln();
+        $this->pdf->Cell(40,7,utf8_encode('Nombre'),1,0,'C');
+        $this->pdf->Cell(40,7,utf8_encode('Razon Social'),1,0,'C');
+        $this->pdf->Ln();
+    // Datos
+        $this->pdf->Cell(40,6,$cliente['nombre'],'LR');
+        $this->pdf->Cell(40,6,$cliente['razon'],'LR');
+        $this->pdf->Ln();
+    $this->pdf->Cell(80,0,'','T');
+        $this->pdf->Ln();
+
+        $this->pdf->Cell(40,7,utf8_encode('Destinatario'));
+        $this->pdf->Ln();
+        $this->pdf->Cell(40,7,utf8_encode('Nombre'),1,0,'C');
+        $this->pdf->Cell(40,7,utf8_encode('Razon Social'),1,0,'C');
+        $this->pdf->Ln();
+    // Datos
+        $this->pdf->Cell(40,6,$entrega['destinatario_nombre'],'LR');
+        $this->pdf->Cell(40,6,$entrega['destinatario_razon'],'LR');
+        $this->pdf->Ln();
+    // Línea de cierre
+    $this->pdf->Cell(80,0,'','T');
+
+    $this->pdf->Output();
+    return $response;//->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
 })->setName('imprimir-entrega');
 
 /*================================================ Routing POST ===================================================*/
@@ -509,7 +612,7 @@ $app->run();
 function demo_keys($c){
     try{
         $results = $c['db']->query("
-            SELECT id, funcion, descripcion
+            SELECT *
             FROM funciones
         ");
     }catch(Exception $e){
@@ -601,19 +704,11 @@ function checar_clave($c, $usr, $clv){
     return $usuario;
 }
 
-function checar_email($c, $email){
-    if(preg_match("/^[-!#$%&'*+/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+/0-9=?A-Z^_a-z{|}~])*
-        @[a-zA-Z](-?[a-zA-Z0-9])*(\.[a-zA-Z](-?[a-zA-Z0-9])*)+$/", $email)){
-            return true;
-        }
-    return false;
-}
-
 function clientes_lista($c){
     try{
         //echo var_dump($c); exit();
         $results = $c['db']->query("
-            SELECT clientes.nombre, clientes.razon, usuarios.id, usuarios.usuario, usuarios.email
+            SELECT clientes.*, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
@@ -629,7 +724,7 @@ function clientes_lista($c){
 function cliente_detalle($c, $id){
     try{
         $results = $c['db']->prepare("
-            SELECT clientes.nombre, clientes.razon, usuarios.id, usuarios.usuario, usuarios.email
+            SELECT clientes.*, usuarios.email
             FROM clientes
             LEFT OUTER JOIN usuarios
             ON clientes.usuario_id = usuarios.id
@@ -663,16 +758,16 @@ function cliente_nuevo($c, $data){
     }
     $id = $c['db']->lastInsertId();
     try{
-        $results = $c['db']->prepare("
+        $results2 = $c['db']->prepare("
             INSERT INTO clientes
             (nombre, razon, usuario_id)
             VALUES
             (?, ?, ?)
         ");
-        $results->bindParam(1, $data['nombre']);
-        $results->bindParam(2, $data['razon']);
-        $results->bindValue(3, $id, PDO::PARAM_INT);
-        $results->execute();
+        $results2->bindParam(1, $data['nombre']);
+        $results2->bindParam(2, $data['razon']);
+        $results2->bindValue(3, $id, PDO::PARAM_INT);
+        $results2->execute();
     }catch(Exception $e){
         echo ('No se pudo leer la informacion de la base de datos');
         exit();
@@ -852,28 +947,26 @@ function entregas_lista($c, $id){
     return $entregas;
 }
 
-/*function entrega_nueva($c, $data, $id){
+function entrega_detalle($c, $id){
     try{
         $results = $c['db']->prepare("
-            INSERT INTO entregas
-            (destinatario_nombre, destinatario_razon, destinatario_dir, remitente_dir, estado_id,    usuario_id)
-            VALUES
-            (?, ?, ?, ?, ?,    ?)
+            SELECT e.*, t.tipo_entrega, c.cobertura, es.estado
+            FROM entregas AS e
+                LEFT JOIN `tipos entrega` AS t ON (e.tipo_entrega_id = t.id)
+                LEFT JOIN coberturas AS c ON (e.cobertura_id = c.id)
+                LEFT JOIN estados AS es ON (e.estado_id = es.id)
+            WHERE e.id = ?
         ");
-        $results->bindParam(1, $data['destinatario_nombre']);
-        $results->bindParam(2, $data['destinatario_razon']);
-        $results->bindParam(3, $data['destinatario_dir']);
-        $results->bindParam(4, $data['remitente_dir']);
-        $results->bindValue(5, 0);
-
-        $results->bindValue(10, $id, PDO::PARAM_INT);
+        $results->bindValue(1, $id, PDO::PARAM_INT);
         $results->execute();
     }catch(Exception $e){
-        echo ('No se pudo leer la informacion de la base de datos');
+        echo ('No se pudo leer la informacion de la base de datos' . $e);
         exit();
     }
-    return true;
-}*/
+    $results = $results->fetch();
+    //echo var_dump($results); exit();
+    return $results;
+}
 
 function entrega_nueva($c, $data, $id){
     try{

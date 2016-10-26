@@ -15,7 +15,7 @@
 
         <label>
             <span>Razón Social:</span>
-            <p>{{ cliente['razon'] }}</p>
+            <p>{{ cliente['razon'] | default('&nbsp;') | raw }}</p>
         </label>
 
         <label>
@@ -23,7 +23,7 @@
             <p>{{ cliente['email'] }}</p>
         </label>
 
-        <a href="{{ path_for('update-cliente', {id: cliente.id}) }}" class="accion-cliente-perfil">Editar perfil</a>
+        <a href="{{ path_for('update-cliente', {id: cliente.usuario_id}) }}" class="accion-cliente-perfil">Editar perfil</a>
     </div>
 
     <div class="direcciones">
@@ -33,7 +33,7 @@
 		{% else %}
 			<p>No se han registrado direcciones para este cliente.</p>
 		{% endif %}
-        <a href="{{ path_for('nuevo-direccion', {id: cliente.id}) }}" class="accion-cliente-direccion">Agregar dirección</a>
+        <a href="{{ path_for('nuevo-direccion', {id: cliente.usuario_id}) }}" class="accion-cliente-direccion">Agregar dirección</a>
     </div>
 
     <div class="entregas">
@@ -43,6 +43,6 @@
 		{% else %}
 			<p>No se han registrado entregas para este cliente.</p>
 		{% endif %}
-        <a href="{{ path_for('nuevo-entrega', {id: cliente.id}) }}" class="accion-cliente-entrega">Agregar entrega</a>
+        <a href="{{ path_for('nuevo-entrega', {id: cliente.usuario_id}) }}" class="accion-cliente-entrega">Agregar entrega</a>
     </div>
 {% endblock content %}
