@@ -15,7 +15,7 @@
 
         <label>
             <span>Razón Social:</span>
-            <p>{{ cliente['razon'] }}</p>
+            <p>{{ cliente['razon'] | default('&nbsp;') | raw }}</p>
         </label>
 
         <label>

@@ -11,6 +11,10 @@
         "slim/slim": "^3.5",
         "slim/twig-view": "^2.1",
         "swiftmailer/swiftmailer": "^5.4",
-        "slim/flash": "^0.1.0"
+        "slim/flash": "^0.1.0",
+        "setasign/fpdf": "^1.8"
+    },
+    "autoload": {
+        "classmap": ["vendor/setasign/fpdf/tfpdf.php"]
     }
 }

@@ -18,8 +18,8 @@
             <td>{{ entrega['direccion_remi'] }}</td>
             <td>{{ entrega['estado'] }}</td>
             <td>
-                <a href="{{ path_for('email-entrega', {id: entrega.usuario_id}) }}">Enviar email</a> |
-                <a href="{{ path_for('imprimir-entrega', {id: entrega.usuario_id}) }}">Imprimir</a>
+                <a href="{{ path_for('email-entrega', {id: entrega.usuario_id, eid: entrega.id}) }}">Enviar email</a> |
+                <a href="{{ path_for('imprimir-entrega', {id: entrega.usuario_id, eid: entrega.id}) }}">Imprimir</a>
             </td>
         </tr>
         {% set cont = cont + 1 %}
