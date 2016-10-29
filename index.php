@@ -45,6 +45,9 @@ $container['pdf'] = function () {
         }
     }
     $pdf = new \PDF();
+    //pdf->AddFont('DejaVu','','DejaVuSansCondensed.ttf',true);
+    //$pdf->SetFont('DejaVu','',14);
+    //$pdf->AddFont('Caladea','','caladea-regular.php');
     return $pdf;
 };
 
