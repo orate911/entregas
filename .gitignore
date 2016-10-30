@@ -5,4 +5,4 @@ robots.txt
 .sass-cache/
 cache/
 log/
-db.php
+res/

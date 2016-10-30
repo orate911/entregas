@@ -4,13 +4,8 @@ date_default_timezone_set('America/Mexico_City');
 session_start();
 
 // configs
-$config['displayErrorDetails'] = true;  //for dev
-$config['addContentLengthHeader'] = false;
-
-$config['db']['host']   = "entregas.asteroide2di.com";
-$config['db']['user']   = "astero5_entr_usr";
-$config['db']['pass']   = "ud;nGqZ@9euv";
-$config['db']['dbname'] = "astero5_entregas";
+require 'res/config.php';
+require 'res/db.php';
 
 $app = new \Slim\App(['settings' => $config]);
 $container = $app->getContainer();
@@ -33,9 +28,9 @@ $container['pdf'] = function () {
     class PDF extends FPDF {
         function Header(){
             //$this->Image('logo_pb.png',10,8,33);
-            $this->SetFont('Arial','B',15);
+            $this->SetFont('Arial','',10);
             $this->Cell(80);
-            $this->Cell(30,10,'Title',1,0,'C');
+            $this->Cell(30,10, $this->titulo,0,0,'C');
             $this->Ln(20);
         }
         function Footer(){
@@ -286,8 +281,13 @@ $app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
         'orate911@hotmail.com' => 'Yo'
     ));
     $message->setBody($entrega);
-    $result = rand(0,1);    //$mailer->send($message);  //rand(0,1);
-    
+
+    if($config['enviarMail']){
+        $result = $mailer->send($message);
+    }else{
+        $result = rand(0,1);
+    }
+
     if($result > 0){
         $this->flash->addMessage('exito', 'Su mensaje ha sido recibido. Muy pronto nos contactaremos con usted.');
         return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
@@ -319,36 +319,90 @@ $app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    $remitente = direccion_detalle($this, $entrega['remitente_dir']);
+    $destinatario = direccion_detalle($this, $entrega['destinatario_dir']);
     //
+    $dir_keys = [
+        'calle' => 'Direccion',
+        'entre' => 'Entre',
+        'calle' => 'Colonia',
+        'ciudad' => 'Ciudad',
+        'estado' => 'Estado',
+        'pais' => 'pais',
+        'cp' => 'C.P.',
+        'telefono' => 'Telefono'
+    ];
     $this->flash->addMessage('exito', 'La entrega se imprimio con exito.');
     $response = $response->withHeader( 'Content-type', 'application/pdf');
+    $this->pdf->titulo = 'Entrega No. '.$entrega['id'].' Cliente No. '.$cliente['usuario_id'];
     $this->pdf->AliasNbPages();
     $this->pdf->AddPage();
     $this->pdf->SetFont('Arial','',12);
-    //$this->pdf->Cell(40,10,utf8_encode('¡Hola, Mundo!'));
-        $this->pdf->Cell(40,7,utf8_encode('Remitente'));
-        $this->pdf->Ln();
-        $this->pdf->Cell(40,7,utf8_encode('Nombre'),1,0,'C');
-        $this->pdf->Cell(40,7,utf8_encode('Razon Social'),1,0,'C');
-        $this->pdf->Ln();
-    // Datos
-        $this->pdf->Cell(40,6,$cliente['nombre'],'LR');
-        $this->pdf->Cell(40,6,$cliente['razon'],'LR');
-        $this->pdf->Ln();
-    $this->pdf->Cell(80,0,'','T');
-        $this->pdf->Ln();
+    //imagen
+    $this->pdf->Image('res/pdf_640.png',10,10,16);
+    $this->pdf->setY(35);
 
-        $this->pdf->Cell(40,7,utf8_encode('Destinatario'));
+    //remitente
+    $this->pdf->Cell(120,7,utf8_encode('Remitente'),1,0);
+    $this->pdf->Ln();
+    
+    $this->pdf->SetFont('','B');
+    $this->pdf->Cell(40,5,utf8_encode('Nombre'));
+    $this->pdf->SetFont('','');
+    $this->pdf->Write(5,$cliente['nombre']);
+    $this->pdf->Ln();
+    
+    $this->pdf->SetFont('','B');
+    $this->pdf->Cell(40,5,utf8_encode('Razon Social'));
+    $this->pdf->SetFont('','');
+    $this->pdf->Write(5,$cliente['razon']);
+    $this->pdf->Ln();
+
+    foreach($dir_keys as $key => $label){
+        $this->pdf->SetFont('','B');
+        $this->pdf->Cell(40,5,utf8_encode($label));
+        $this->pdf->SetFont('','');
+        $this->pdf->Write(5,$remitente[$key]);
         $this->pdf->Ln();
-        $this->pdf->Cell(40,7,utf8_encode('Nombre'),1,0,'C');
-        $this->pdf->Cell(40,7,utf8_encode('Razon Social'),1,0,'C');
+    }
+    $this->pdf->Ln(5);
+
+    //destinatario
+    $this->pdf->Cell(120,7,utf8_encode('Destinatario'),1,0);
+    $this->pdf->Ln();
+    
+    $this->pdf->SetFont('','B');
+    $this->pdf->Cell(40,5,utf8_encode('Nombre'));
+    $this->pdf->SetFont('','');
+    $this->pdf->Write(5,$entrega['destinatario_nombre']);
+    $this->pdf->Ln();
+    
+    $this->pdf->SetFont('','B');
+    $this->pdf->Cell(40,5,utf8_encode('Razon Social'));
+    $this->pdf->SetFont('','');
+    $this->pdf->Write(5,$entrega['destinatario_razon']);
+    $this->pdf->Ln();
+
+    foreach($dir_keys as $key => $label){
+        $this->pdf->SetFont('','B');
+        $this->pdf->Cell(40,5,utf8_encode($label));
+        $this->pdf->SetFont('','');
+        $this->pdf->Write(5,$destinatario[$key]);
         $this->pdf->Ln();
-    // Datos
-        $this->pdf->Cell(40,6,$entrega['destinatario_nombre'],'LR');
-        $this->pdf->Cell(40,6,$entrega['destinatario_razon'],'LR');
-        $this->pdf->Ln();
-    // Línea de cierre
-    $this->pdf->Cell(80,0,'','T');
+    }
+    $this->pdf->Ln(5);
+
+    //tipo_entrega
+    $this->pdf->Cell(120,7,utf8_encode('Tipo de Entrega'),1,0);
+    $this->pdf->Ln();
+    $this->pdf->Write(5,$entrega['tipo_entrega']);
+    $this->pdf->Ln(10);
+
+    //tipo_entrega
+    $this->pdf->Cell(120,7,utf8_encode('Tipo de Cobertura'),1,0);
+    $this->pdf->Ln();
+    $this->pdf->Write(5,$entrega['cobertura']);
+    $this->pdf->Ln(10);
 
     $this->pdf->Output();
     return $response;//->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
@@ -915,6 +969,22 @@ function estados_lista($c){
     }
     $estados = $results->fetchAll();
     return $estados;
+}
+
+function direccion_detalle($c, $id){
+    try{
+        $results = $c['db']->prepare("
+            SELECT *
+            FROM direcciones
+            WHERE id = ?
+        ");
+        $results->bindValue(1, $id, PDO::PARAM_INT);
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    return $results->fetch();
 }
 
 function direcciones_lista($c, $id){
