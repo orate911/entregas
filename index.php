@@ -118,11 +118,16 @@ $app->get('/detalle/cliente/{id}', function ($request, $response, $args) {
         return $response->withRedirect($this->router->pathFor('home'));
     }
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
+         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
     $cliente = cliente_detalle($this, $id);
     if(empty($cliente)){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    //
     $direcciones = direcciones_lista($this, $id);
     $dirs = array_column($direcciones, 'direccion', 'id');
     $estados = estados_lista($this, $id);
@@ -186,6 +191,16 @@ $app->get('/nuevo/direccion/{id}', function ($request, $response, $args) {
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
+         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
     return $this->view->render($response, 'direccion-nueva.twig', [
         'flash' => $this->flash->getMessages(),
         'usuario' => $usuario
@@ -193,18 +208,28 @@ $app->get('/nuevo/direccion/{id}', function ($request, $response, $args) {
 })->setName('nuevo-direccion');
 
 $app->get('/nuevo/entrega/{id}', function ($request, $response, $args) {
-    $usuario = checar_usuario($this);
+     $usuario = checar_usuario($this);
     if(empty($usuario)){
         return $response->withRedirect($this->router->pathFor('home'));
     }
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
+         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        $this->flash->addMessage('error', 'No se encontro el cliente.');
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    //
     $direcciones = direcciones_lista($this, $id);
     $tipos_entrega = tipos_entrega_lista($this, $id);
     $coberturas = coberturas_lista($this, $id);
-    if(count($direcciones) < 2){
+    /*if(count($direcciones) < 2){
         $this->flash->addMessage('error', 'Tiene que definir al menos dos direcciones para este cliente.');
         return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
-    }
+    }*/
     return $this->view->render($response, 'entrega-nueva.twig', [
         'flash' => $this->flash->getMessages(),
         'usuario' => $usuario,
@@ -274,10 +299,13 @@ $app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
 })->setName('email-entrega');
 
 $app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
-    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
-    $eid = filter_var($args['eid'], FILTER_SANITIZE_NUMBER_INT);
     $usuario = checar_usuario($this);
     if(empty($usuario)){
+        return $response->withRedirect($this->router->pathFor('home'));
+    }
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    if($usuario['funcion'] != 'admin' && $usuario['id'] != $id){
+         $this->flash->addMessage('error', 'No tiene el nivel de usuario requerido.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
     $cliente = cliente_detalle($this, $id);
@@ -285,11 +313,13 @@ $app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    $eid = filter_var($args['eid'], FILTER_SANITIZE_NUMBER_INT);
     $entrega = entrega_detalle($this, $eid);
     if(empty($entrega)){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    //
     $this->flash->addMessage('exito', 'La entrega se imprimio con exito.');
     $response = $response->withHeader( 'Content-type', 'application/pdf');
     $this->pdf->AliasNbPages();
