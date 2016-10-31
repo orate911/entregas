@@ -4,6 +4,20 @@
 
 {% block page_title %}Cliente{% endblock page_title %}
 
+{% block sidebar %}
+    {% if usuario %}
+        <p>Conectado como {{ usuario.usuario }} con nivel {{ usuario.funcion }}.</p>
+        <p><a href="{{ path_for('update-cliente', {id: cliente.usuario_id}) }}" class="accion-cliente-perfil">Editar perfil</a></p>
+        <p><a href="{{ path_for('nuevo-direccion', {id: cliente.usuario_id}) }}" class="accion-cliente-direccion">Agregar dirección</a></p>
+        <p><a href="{{ path_for('nuevo-entrega', {id: cliente.usuario_id}) }}" class="accion-cliente-entrega">Agregar entrega</a></p>
+    {% else %}
+        <a href="{{ path_for('nuevo-cliente') }}">Registro</a>
+        <div class="side-cont">
+            {{ include('form-login.twig') }}
+        </div>
+    {% endif %}
+{% endblock sidebar %}
+
 {% block content %}
     <div class="perfil">
         <h1>Perfil</h1>
@@ -23,7 +37,6 @@
             <p>{{ cliente['email'] }}</p>
         </label>
 
-        <a href="{{ path_for('update-cliente', {id: cliente.usuario_id}) }}" class="accion-cliente-perfil">Editar perfil</a>
     </div>
 
     <div class="direcciones">
@@ -33,7 +46,6 @@
 		{% else %}
 			<p>No se han registrado direcciones para este cliente.</p>
 		{% endif %}
-        <a href="{{ path_for('nuevo-direccion', {id: cliente.usuario_id}) }}" class="accion-cliente-direccion">Agregar dirección</a>
     </div>
 
     <div class="entregas">
@@ -43,6 +55,5 @@
 		{% else %}
 			<p>No se han registrado entregas para este cliente.</p>
 		{% endif %}
-        <a href="{{ path_for('nuevo-entrega', {id: cliente.usuario_id}) }}" class="accion-cliente-entrega">Agregar entrega</a>
     </div>
 {% endblock content %}

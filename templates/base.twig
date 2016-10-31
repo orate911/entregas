@@ -28,7 +28,6 @@
 				{% if usuario.funcion == 'admin' %}
 					<li><a href="{{ path_for('clientes-lista') }}">Clientes</a></li>
 				{% elseif usuario.funcion == 'cliente'%}
-					<li><a href="{{ path_for('detalle-cliente', {id: usuario.id}) }}">Perfil</a></li>
 				{% endif %}
 				<li><a href="{{ path_for('logout') }}">Logout</a></li>
 			{% endif %}

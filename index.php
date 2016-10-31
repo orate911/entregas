@@ -84,6 +84,9 @@ $app->get('/', function($request, $response){
             'demo' => $demo
         ]);
     }
+    if($usuario['funcion'] == 'cliente'){
+        return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $usuario['id']]));
+    }
     return $this->view->render($response, 'home.twig', [
         'flash' => $this->flash->getMessages(),
         'usuario' => $usuario
@@ -269,6 +272,37 @@ $app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
         $this->flash->addMessage('error', 'No se encontro el cliente.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
+    $remitente = direccion_detalle($this, $entrega['remitente_dir']);
+    $destinatario = direccion_detalle($this, $entrega['destinatario_dir']);
+    //cuerpo del mensaje
+    $dir_keys = [
+        'calle' => 'Direccion',
+        'entre' => 'Entre',
+        'colonia' => 'Colonia',
+        'ciudad' => 'Ciudad',
+        'estado' => 'Estado',
+        'pais' => 'pais',
+        'cp' => 'C.P.',
+        'telefono' => 'Telefono'
+    ];
+    $cuerpo = '';
+    $cuerpo .= '<p>Entrega No. '.$entrega['id'].' Cliente No. '.$cliente['usuario_id'].'</p>';
+    $cuerpo .= '<h1>Remitente</h1>';
+    $cuerpo .= '<p>Nombre: '.$cliente['nombre'].'</p>';
+    $cuerpo .= '<p>Razon Social: '.$cliente['razon'].'</p>';
+    foreach($dir_keys as $key => $label){
+        $cuerpo .= '<p>'.$label.': '.$remitente[$key].'</p>';
+    }
+    $cuerpo .= '<h1>Destinatario</h1>';
+    $cuerpo .= '<p>Nombre: '.$entrega['destinatario_nombre'].'</p>';
+    $cuerpo .= '<p>Razon Social: '.$entrega['destinatario_razon'].'</p>';
+    foreach($dir_keys as $key => $label){
+        $cuerpo .= '<p>'.$label.': '.$destinatario[$key].'</p>';
+    }
+    $cuerpo .= '<h1>Tipo de Entrega</h1>';
+    $cuerpo .= '<p>'.$entrega['tipo_entrega'].'</p>';
+    $cuerpo .= '<h1>Tipo de Cobertura</h1>';
+    $cuerpo .= '<p>'.$entrega['cobertura'].'</p>';
     //
     $transport = Swift_MailTransport::newInstance();
     $mailer = Swift_Mailer::newInstance($transport);
@@ -280,9 +314,8 @@ $app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
     $message->setTo(array(
         'orate911@hotmail.com' => 'Yo'
     ));
-    $message->setBody($entrega);
-
-    if($config['enviarMail']){
+    $message->setBody($cuerpo, 'text/html');
+    if($this['settings']['enviarMail']){
         $result = $mailer->send($message);
     }else{
         $result = rand(0,1);
