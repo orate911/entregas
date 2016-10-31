@@ -22,6 +22,38 @@ $(document).ready(function(){
 		$('.form-cliente').show(500);
 		return false;
 	});
+
+	// form-entrega-nueva-grande
+    var dir_keys = ['direccion', 'calle', 'entre', 'colonia', 'ciudad', 'estado', 'pais', 'cp', 'telefono'];
+	$(".form-entrega-nueva-grande [name='remitente_dir']").on('change', function(event){
+		event.preventDefault();
+		var id = $(this).val();
+		$.each(dir_keys, function(index){
+			var key = dir_keys[index];
+			var input = $("[name='r_" + key + "']");
+			if(id){
+				input.val(direcciones[id][key]).attr('disabled','disabled');
+			}else{
+				input.val('').removeAttr('disabled');
+			}
+		});
+		return false;
+	});
+	
+	$(".form-entrega-nueva-grande [name='destinatario_dir']").on('change', function(event){
+		event.preventDefault();
+		var id = $(this).val();
+		$.each(dir_keys, function(index){
+			var key = dir_keys[index];
+			var input = $("[name='d_" + key + "']");
+			if(id){
+				input.val(direcciones[id][key]).attr('disabled','disabled');
+			}else{
+				input.val('').removeAttr('disabled');
+			}
+		});
+		return false;
+	});
 	
 	//mensajes
 	var mensajes = [];

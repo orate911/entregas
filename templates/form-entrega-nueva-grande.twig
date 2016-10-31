@@ -1,0 +1,232 @@
+<form action="" method="POST" class="form-entrega-nueva-grande">
+
+    <h1>Remitente
+        <span>Ingrese los datos del remitente.</span>
+    </h1>
+
+    <label>
+        <span>Dirección del remitente: </span>
+        <select name="remitente_dir">
+            <option value="">Seleccione una dirección</option>
+            {% for index, direccion in direcciones %}
+            <option value="{{ direccion.id }}">{{ direccion.direccion }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span>( {{ direccion.calle | slice(0,15) }}... )</span></option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['remitente_dir'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Alias: </span>
+        <input type="text" name="r_direccion" placeholder="Nombre descriptivo" required>
+        <div class="validation">{{ flash['r_direccion'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Calle: </span>
+        <input type="text" name="r_calle" placeholder="Calle y número" required>
+        <div class="validation">{{ flash['r_calle'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Entre: </span>
+        <input type="text" name="r_entre" placeholder="Referencia de otras calles">
+        <div class="validation">{{ flash['r_entre'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Colonia: </span>
+        <input type="text" name="r_colonia" placeholder="Colonia" required>
+        <div class="validation">{{ flash['r_colonia'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Ciudad: </span>
+        <input type="text" name="r_ciudad" placeholder="Ciudad" required>
+        <div class="validation">{{ flash['r_ciudad'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Estado: </span>
+        <input type="text" name="r_estado" placeholder="Estado" required>
+        <div class="validation">{{ flash['r_estado'][0] }}</div>
+    </label>
+
+    <label>
+        <span>País: </span>
+        <input type="text" name="r_pais" placeholder="País" required>
+        <div class="validation">{{ flash['r_pais'][0] }}</div>
+    </label>
+
+    <label>
+        <span>C.P.: </span>
+        <input type="text" name="r_cp" placeholder="Código Postal (00000)" pattern="[0-9]{5}" required>
+        <div class="validation">{{ flash['r_cp'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Teléfono: </span>
+        <input type="text" name="r_telefono" placeholder="Teléfono" required>
+        <div class="validation">{{ flash['r_telefono'][0] }}</div>
+    </label>
+
+    </br>
+
+    <h1>Destinatario
+        <span>Ingrese los datos del destinatario.</span>
+    </h1>
+
+    <label>
+        <span>Destinatario nombre: </span>
+        <input type="text" name="destinatario_nombre" placeholder="Nombre del destinatario" required>
+        <div class="validation">{{ flash['destinatario_nombre'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Destinatario razon social: </span>
+        <input type="text" name="destinatario_razon" placeholder="Razon social del destinatario" required>
+        <div class="validation">{{ flash['destinatario_razon'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Dirección del destinatario: </span>
+        <select name="destinatario_dir">
+            <option value="">Seleccione una dirección</option>
+            {% for index, direccion in direcciones %}
+            <option value="{{ direccion.id }}">{{ direccion.direccion }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span>( {{ direccion.calle | slice(0,15) }}... )</span></option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['destinatario_dir'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Alias: </span>
+        <input type="text" name="d_direccion" placeholder="Nombre descriptivo" required>
+        <div class="validation">{{ flash['d_direccion'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Calle: </span>
+        <input type="text" name="d_calle" placeholder="Calle y número" required>
+        <div class="validation">{{ flash['d_calle'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Entre: </span>
+        <input type="text" name="d_entre" placeholder="Referencia de otras calles">
+        <div class="validation">{{ flash['d_entre'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Colonia: </span>
+        <input type="text" name="d_colonia" placeholder="Colonia" required>
+        <div class="validation">{{ flash['d_colonia'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Ciudad: </span>
+        <input type="text" name="d_ciudad" placeholder="Ciudad" required>
+        <div class="validation">{{ flash['d_ciudad'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Estado: </span>
+        <input type="text" name="d_estado" placeholder="Estado" required>
+        <div class="validation">{{ flash['d_estado'][0] }}</div>
+    </label>
+
+    <label>
+        <span>País: </span>
+        <input type="text" name="d_pais" placeholder="País" required>
+        <div class="validation">{{ flash['d_pais'][0] }}</div>
+    </label>
+
+    <label>
+        <span>C.P.: </span>
+        <input type="text" name="d_cp" placeholder="Código Postal (00000)" pattern="[0-9]{5}" required>
+        <div class="validation">{{ flash['d_cp'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Teléfono: </span>
+        <input type="text" name="d_telefono" placeholder="Teléfono" required>
+        <div class="validation">{{ flash['d_telefono'][0] }}</div>
+    </label>
+
+    </br>
+
+    <h1>Entrega
+        <span>Ingrese los datos de la entrega.</span>
+    </h1>
+
+    <label>
+        <span>Tipo de entrega: </span>
+        <select name="tipo_entrega_id">
+            <option value="">Seleccione un tipo de entrega</option>
+            {% for index, tipo_entrega in tipos_entrega %}
+            <option value="{{ tipo_entrega.id }}">{{ tipo_entrega['tipo_entrega'] }}</option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['tipo'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Tipo de acuse/Documento: </span>
+        <input type="radio" name="acuse" value="0" checked>Sin acuse
+        <input type="radio" name="acuse" value="1">Con acuse
+        <div class="validation">{{ flash['acuse'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Tipo de cobertura: </span>
+        <select name="cobertura_id">
+            <option value="">Seleccione un tipo de cobertura</option>
+            {% for index, cobertura in coberturas %}
+            <option value="{{ cobertura.id }}">{{ cobertura.cobertura }}</option>
+            {% endfor %}
+        </select>
+        <div class="validation">{{ flash['cobertura_id'][0] }}</div>
+    </label>
+
+    <label>
+        <span>C.O.D.: </span>
+        <input type="radio" name="cod" value="0" checked>No
+        <input type="radio" name="cod" value="1">Si
+        <div class="validation">{{ flash['cod'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Cantidad: </span>
+        <input type="text" name="cantidad" placeholder="Cantidad">
+        <div class="validation">{{ flash['cantidad'][0] }}</div>
+    </label>
+
+    <label>
+        <span>Peso: </span>
+        <input type="text" name="peso" placeholder="Peso">
+        <div class="validation">{{ flash['peso'][0] }}</div>
+    </label>
+
+    <input type="hidden" name="id" value="{{ usuario.id }}">
+    <input type="hidden" name="funcion" value="{{ usuario.funcion }}">
+
+    <input type="submit" class="button">
+</form>
+
+<script>
+    var direcciones = [];
+    {% for index, direccion in direcciones %}
+        var direccion = {};
+        var id;
+        {% for key, value in direccion %}
+            var key = '{{ key }}';
+            if(key == 'id'){
+                id = '{{ value }}';
+            }else{
+                direccion['{{ key }}'] = '{{ value }}';
+            }
+        {% endfor %}
+        direcciones[id] = direccion;
+    {% endfor %}
+</script>

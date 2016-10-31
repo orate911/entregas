@@ -325,14 +325,13 @@ $app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
     $dir_keys = [
         'calle' => 'Direccion',
         'entre' => 'Entre',
-        'calle' => 'Colonia',
+        'colonia' => 'Colonia',
         'ciudad' => 'Ciudad',
         'estado' => 'Estado',
         'pais' => 'pais',
         'cp' => 'C.P.',
         'telefono' => 'Telefono'
     ];
-    $this->flash->addMessage('exito', 'La entrega se imprimio con exito.');
     $response = $response->withHeader( 'Content-type', 'application/pdf');
     $this->pdf->titulo = 'Entrega No. '.$entrega['id'].' Cliente No. '.$cliente['usuario_id'];
     $this->pdf->AliasNbPages();
@@ -620,6 +619,7 @@ $app->post('/nuevo/direccion/{id}', function($request, $response, $args){
     $nuevo_data = [];
     $nuevo_data['cp'] = filter_var($data['cp'], FILTER_SANITIZE_STRING);
     if(!preg_match('/[0-9]{5}/i', $nuevo_data['cp'])){
+        $this->flash->addMessage('error', 'Alguna información no tiene formato válido.');
         $this->flash->addMessage('cp', 'El C.P. no tiene un formato válido.');
         $errores = true;
     }
@@ -630,7 +630,7 @@ $app->post('/nuevo/direccion/{id}', function($request, $response, $args){
     $nuevo_data['calle'] = filter_var($data['calle'], FILTER_SANITIZE_STRING);
     $nuevo_data['entre'] = filter_var($data['entre'], FILTER_SANITIZE_STRING);
     $nuevo_data['colonia'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
-    $nuevo_data['ciudad'] = filter_var($data['colonia'], FILTER_SANITIZE_STRING);
+    $nuevo_data['ciudad'] = filter_var($data['ciudad'], FILTER_SANITIZE_STRING);
     $nuevo_data['estado'] = filter_var($data['estado'], FILTER_SANITIZE_STRING);
     $nuevo_data['pais'] = filter_var($data['pais'], FILTER_SANITIZE_STRING);
     $nuevo_data['telefono'] = filter_var($data['telefono'], FILTER_SANITIZE_STRING);
@@ -647,6 +647,8 @@ $app->post('/nuevo/direccion/{id}', function($request, $response, $args){
 
 $app->post('/nuevo/entrega/{id}', function($request, $response, $args){
     $errores = false;
+    $destinatario_dir = false;
+    $remitente_dir = false;
     $data = $request->getParsedBody();
     $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
     // validacion
@@ -658,24 +660,150 @@ $app->post('/nuevo/entrega/{id}', function($request, $response, $args){
         $this->flash->addMessage('destinatario_razon', 'El campo es requerido');
         $errores = true;
     }
+    // direcciones
     if(empty($data['destinatario_dir'])){
-        $this->flash->addMessage('destinatario_dir', 'El campo es requerido');
-        $errores = true;
+        $destinatario_dir = true;
+        // validacion destinatario
+        if(empty($data['d_direccion'])){
+            $this->flash->addMessage('d_direccion', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_calle'])){
+            $this->flash->addMessage('d_calle', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_colonia'])){
+            $this->flash->addMessage('d_colonia', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_ciudad'])){
+            $this->flash->addMessage('d_ciudad', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_estado'])){
+            $this->flash->addMessage('d_estado', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_pais'])){
+            $this->flash->addMessage('d_pais', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_cp'])){
+            $this->flash->addMessage('d_cp', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['d_telefono'])){
+            $this->flash->addMessage('d_telefono', 'El campo es requerido');
+            $errores = true;
+        }
     }
     if(empty($data['remitente_dir'])){
-        $this->flash->addMessage('remitente_dir', 'El campo es requerido');
-        $errores = true;
+        $remitente_dir = true;
+        // validacion remitente
+        if(empty($data['r_direccion'])){
+            $this->flash->addMessage('r_direccion', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_calle'])){
+            $this->flash->addMessage('r_calle', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_colonia'])){
+            $this->flash->addMessage('r_colonia', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_ciudad'])){
+            $this->flash->addMessage('r_ciudad', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_estado'])){
+            $this->flash->addMessage('r_estado', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_pais'])){
+            $this->flash->addMessage('r_pais', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_cp'])){
+            $this->flash->addMessage('r_cp', 'El campo es requerido');
+            $errores = true;
+        }
+        if(empty($data['r_telefono'])){
+            $this->flash->addMessage('r_telefono', 'El campo es requerido');
+            $errores = true;
+        }
     }
     if($errores){
         $this->flash->addMessage('error', 'Tienes que llenar los campos requeridos.');
         return $response->withRedirect($this->router->pathFor('nuevo-entrega', [id => $id]));
     }
-    // checar_nuevo_usuario verifica si usuario es unico
+    //
     $nuevo_data = [];
+    // destinatario crear
+    if($destinatario_dir){
+        $nueva_dir_data = [];
+        $nueva_dir_data['cp'] = filter_var($data['d_cp'], FILTER_SANITIZE_STRING);
+        if(!preg_match('/[0-9]{5}/i', $nueva_dir_data['cp'])){
+            $this->flash->addMessage('error', 'Alguna información no tiene formato válido.');
+            $this->flash->addMessage('d_cp', 'El C.P. no tiene un formato válido.');
+            $errores = true;
+        }
+        if($errores){
+            return $response->withRedirect($this->router->pathFor('nuevo-entrega', [id => $id]));
+        }
+        $nueva_dir_data['direccion'] = filter_var($data['d_direccion'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['calle'] = filter_var($data['d_calle'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['entre'] = filter_var($data['d_entre'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['colonia'] = filter_var($data['d_colonia'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['ciudad'] = filter_var($data['d_ciudad'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['estado'] = filter_var($data['d_estado'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['pais'] = filter_var($data['d_pais'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['telefono'] = filter_var($data['d_telefono'], FILTER_SANITIZE_STRING);
+        // direccion_nueva crea la direccion
+        $direccion = direccion_nueva($this, $nueva_dir_data, $id);
+        if(empty($direccion)){
+            $this->logger->addInfo('Fallo creación de nueva dirección.');
+            $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
+            return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+        }
+        $nuevo_data['destinatario_dir'] = $direccion['id'];
+    }else{
+        $nuevo_data['destinatario_dir'] = filter_var($data['destinatario_dir'], FILTER_SANITIZE_NUMBER_INT);
+    }
+    // remitente crear
+    if($remitente_dir){
+        $nueva_dir_data = [];
+        $nueva_dir_data['cp'] = filter_var($data['r_cp'], FILTER_SANITIZE_STRING);
+        if(!preg_match('/[0-9]{5}/i', $nueva_dir_data['cp'])){
+            $this->flash->addMessage('error', 'Alguna información no tiene formato válido.');
+            $this->flash->addMessage('r_cp', 'El C.P. no tiene un formato válido.');
+            $errores = true;
+        }
+        if($errores){
+            return $response->withRedirect($this->router->pathFor('nuevo-entrega', [id => $id]));
+        }
+        $nueva_dir_data['direccion'] = filter_var($data['r_direccion'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['calle'] = filter_var($data['r_calle'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['entre'] = filter_var($data['r_entre'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['colonia'] = filter_var($data['r_colonia'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['ciudad'] = filter_var($data['r_ciudad'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['estado'] = filter_var($data['r_estado'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['pais'] = filter_var($data['r_pais'], FILTER_SANITIZE_STRING);
+        $nueva_dir_data['telefono'] = filter_var($data['r_telefono'], FILTER_SANITIZE_STRING);
+        // direccion_nueva crea la direccion
+        $direccion = direccion_nueva($this, $nueva_dir_data, $id);
+        if(empty($direccion)){
+            $this->logger->addInfo('Fallo creación de nueva dirección.');
+            $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
+            return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
+        }
+        $nuevo_data['remitente_dir'] = $direccion['id'];
+    }else{
+        $nuevo_data['remitente_dir'] = filter_var($data['remitente_dir'], FILTER_SANITIZE_NUMBER_INT);
+    }
+    // checar_nuevo_usuario verifica si usuario es unico
     $nuevo_data['destinatario_nombre'] = filter_var($data['destinatario_nombre'], FILTER_SANITIZE_STRING);
     $nuevo_data['destinatario_razon'] = filter_var($data['destinatario_razon'], FILTER_SANITIZE_STRING);
-    $nuevo_data['destinatario_dir'] = filter_var($data['destinatario_dir'], FILTER_SANITIZE_NUMBER_INT);
-    $nuevo_data['remitente_dir'] = filter_var($data['remitente_dir'], FILTER_SANITIZE_NUMBER_INT);
     $nuevo_data['tipo_entrega_id'] = filter_var($data['tipo_entrega_id'], FILTER_SANITIZE_NUMBER_INT);
     $nuevo_data['acuse'] = filter_var($data['acuse'], FILTER_VALIDATE_BOOLEAN);
     $nuevo_data['cobertura_id'] = filter_var($data['cobertura_id'], FILTER_SANITIZE_NUMBER_INT);
@@ -685,11 +813,11 @@ $app->post('/nuevo/entrega/{id}', function($request, $response, $args){
     // entrega_nueva crea la entrega
     $entrega = entrega_nueva($this, $nuevo_data, $id);
     if(empty($entrega)){
-        $this->logger->addInfo('Fallo creación de nueva dirección.');
-        $this->flash->addMessage('error', 'Hubo un problema al crear la dirección.');
+        $this->logger->addInfo('Fallo creación de nueva entrega.');
+        $this->flash->addMessage('error', 'Hubo un problema al crear la entrega.');
         return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
     }
-    $this->flash->addMessage('exito', 'La dirección ha sido creada.');
+    $this->flash->addMessage('exito', 'La entrega ha sido creada.');
     return $response->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
 });
 
@@ -1029,7 +1157,7 @@ function direccion_nueva($c, $data, $id){
         echo ('No se pudo leer la informacion de la base de datos');
         exit();
     }
-    return true;
+    return $c['db']->lastInsertId();
 }
 
 function entregas_lista($c, $id){
