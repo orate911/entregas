@@ -131,7 +131,7 @@ $app->get('/detalle/cliente/{id}', function ($request, $response, $args) {
     $estados = estados_lista($this, $id);
     $edos = array_column($estados, 'estado', 'id');
     //var_dump($edos);
-    $entregas = entregas_lista($this, $id);
+    $entregas = entregas_cliente($this, $id);
     foreach($entregas as $index => &$entrega){
         $entrega['direccion_dest'] = $dirs[$entrega['destinatario_dir']];
         $entrega['direccion_remi'] = $dirs[$entrega['remitente_dir']];
@@ -312,7 +312,7 @@ $app->get('/email/entrega/{id}/{eid}', function($request, $response, $args){
         $cliente['email'] => $cliente['nombre']
     ));
     $message->setTo(array(
-        'orate911@hotmail.com' => 'Yo'
+        'recepcion@entregas.asteroide2di.com' => 'Recepción Entregas'
     ));
     $message->setBody($cuerpo, 'text/html');
     if($this['settings']['enviarMail']){
@@ -440,6 +440,73 @@ $app->get('/imprimir/entrega/{id}/{eid}', function($request, $response, $args){
     return $response;//->withRedirect($this->router->pathFor('detalle-cliente', [id => $id]));
 })->setName('imprimir-entrega');
 
+/*================================================ Routing API ===================================================*/
+$app->post('/api/login', function($request, $response){
+    $data = $request->getParsedBody();
+    // validacion
+    $errores = [];
+    if(empty($data['usuario'])){
+        array_push($errores, ['usuario' => 'El campo es requerido']);
+    }
+    if(empty($data['clave'])){
+        array_push($errores, ['clave' => 'El campo es requerido']);
+    }
+    if(count($errores) > 0){
+         return $response->withJson(["errores" => $errores]);
+    }
+    // limpieza
+    $login_data = [];
+    $login_data['usuario'] = filter_var($data['usuario'], FILTER_SANITIZE_STRING);
+    $login_data['clave'] = filter_var($data['clave'], FILTER_SANITIZE_STRING);
+    // checar_clave regresa el usuario si la clave es correcta
+    /*¡¡¡¡¡¡¡¡¡¡¡¡¡ Agregar encriptacion a la clave !!!!!!!!!!!!*/
+    $usuario = checar_clave($this, $login_data['usuario'], $login_data['clave']);
+    if(empty($usuario)){
+        
+    }
+    return $response->withJson([
+        "errores" => $errores,
+        "usuario" => $usuario
+    ]);
+})->setName('api_login');
+
+$app->get('/api/clientes', function($request, $response){
+    $clientes = clientes_lista($this);
+    return $response->withJson(["clientes" => $clientes]);
+})->setName('api_clientes');
+
+$app->get('/api/entregas', function($request, $response){
+    $entregas = entregas_lista($this);
+    return $response->withJson(["entregas" => $entregas]);
+})->setName('api_entregas');
+
+$app->get('/api/detalle/cliente/{id}', function($request, $response, $args){
+    $id = filter_var($args['id'], FILTER_SANITIZE_NUMBER_INT);
+    $cliente = cliente_detalle($this, $id);
+    if(empty($cliente)){
+        echo ("No se econtro");
+        return $response;
+    }
+    //
+    $direcciones = direcciones_lista($this, $id);
+    $dirs = array_column($direcciones, 'direccion', 'id');
+    $estados = estados_lista($this, $id);
+    $edos = array_column($estados, 'estado', 'id');
+    //var_dump($edos);
+    $entregas = entregas_cliente($this, $id);
+    foreach($entregas as $index => &$entrega){
+        $entrega['direccion_dest'] = $dirs[$entrega['destinatario_dir']];
+        $entrega['direccion_remi'] = $dirs[$entrega['remitente_dir']];
+        $entrega['estado'] = $edos[$entrega['estado_id']];
+    }
+    return $this->view->render($response, 'cliente-detalle.twig', [
+        'flash' => $this->flash->getMessages(),
+        'cliente' => $cliente,
+        'direcciones' => $direcciones,
+        'entregas' => $entregas
+    ]);
+})->setName('api_detalle_cliente');
+
 /*================================================ Routing POST ===================================================*/
 $app->post('/login', function($request, $response){
     $data = $request->getParsedBody();
@@ -468,7 +535,7 @@ $app->post('/login', function($request, $response){
         $this->flash->addMessage('error', 'Nombre de usuario o clave incorrecta.');
         return $response->withRedirect($this->router->pathFor('home'));
     }
-    // registrar seseion
+    // registrar sesion
     $_SESSION['login_user'] = $usuario['usuario'];
     $this->flash->addMessage('exito', '¡Bienvenido ' . $usuario['usuario'] . ' !');
     return $response->withRedirect($this->router->pathFor('home'));
@@ -1193,7 +1260,23 @@ function direccion_nueva($c, $data, $id){
     return $c['db']->lastInsertId();
 }
 
-function entregas_lista($c, $id){
+function entregas_lista($c){
+    try{
+        //echo var_dump($id); exit();
+        $results = $c['db']->prepare("
+            SELECT *
+            FROM entregas
+        ");
+        $results->execute();
+    }catch(Exception $e){
+        echo ('No se pudo leer la informacion de la base de datos');
+        exit();
+    }
+    $entregas = $results->fetchAll();
+    return $entregas;
+}
+
+function entregas_cliente($c, $id){
     try{
         //echo var_dump($id); exit();
         $results = $c['db']->prepare("
